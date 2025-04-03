@@ -1,0 +1,65 @@
+{% extends "pam/base.html" %}
+
+{% block content %}
+<h1 class="mb-4">Estações de Trabalho (PAs)</h1>
+
+{% for category in categories %}
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h2>{{ category.name }}</h2>
+        <a href="{% url 'pam:workstation_create' %}?category={{ category.original_value }}" class="btn btn-success btn-sm">
+            <i class="bi bi-plus-lg"></i> Nova Estação
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Funcionário</th>
+                        <th>Periféricos</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for workstation in category.workstations %}
+                    <tr>
+                        <td>{{ workstation.category }}-{{ workstation.sequence }}</td>
+                        <td>
+                            {% if workstation.employee %}
+                                {{ workstation.employee.name }} (ID: {{ workstation.employee.id }})
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if workstation.monitor %}<span class="badge bg-success">Monitor</span>{% endif %}
+                            {% if workstation.keyboard %}<span class="badge bg-success">Teclado</span>{% endif %}
+                            {% if workstation.mouse %}<span class="badge bg-success">Mouse</span>{% endif %}
+                            {% if workstation.mousepad %}<span class="badge bg-success">Mousepad</span>{% endif %}
+                            {% if workstation.headset %}<span class="badge bg-success">Fone</span>{% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'pam:workstation_update' workstation.pk %}" class="btn btn-sm btn-primary">
+                                    Editar
+                                </a>
+                                <a href="{% url 'pam:workstation_delete' workstation.pk %}" class="btn btn-sm btn-danger">
+                                    Excluir
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">Nenhuma estação nesta categoria</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

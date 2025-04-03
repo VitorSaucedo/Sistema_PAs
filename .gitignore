@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyd
+*.pyo
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+venv/
+.env/
+
+# Diretórios
+.idea/
+.vscode/
+
+# Database
+*.sqlite3
+*.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Ambiente virtual
+venv/
+ENV/
+
+# Django
+/media/
+/staticfiles/

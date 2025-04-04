@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Visão do Escritório</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .office-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 25px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+            background-color: #f1f1f1;
+            transition: all 0.3s;
+        }
+        .tab:hover {
+            background-color: #ddd;
+        }
+        .tab.active {
+            background-color: white;
+            border-color: #ddd;
+            border-bottom-color: white;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .columns-container {
+            display: flex;
+            gap: 20px;
+        }
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .workstation {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            min-height: 120px;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .workstation:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .workstation-number {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            color: #7f8c8d;
+            font-size: 0.8em;
+        }
+        .employee-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        .sector {
+            font-size: 0.8em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: #e3f2fd;
+            color: #1976d2;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .sector-mismatch {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+        .sector-select {
+            width: 100%;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        .detail {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 3px;
+        }
+        .status-container {
+            position: relative;
+            margin-top: auto;
+            align-self: flex-end;
+        }
+        .status-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .status-btn:hover {
+            transform: scale(1.1);
+        }
+        .status-occupied {
+            background-color: #2ecc71;
+        }
+        .status-unoccupied {
+            background-color: #f39c12;
+        }
+        .status-issue {
+            background-color: #e74c3c;
+        }
+        .status-options {
+            position: absolute;
+            bottom: 30px;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 10px;
+            z-index: 10;
+            display: none;
+            width: 150px;
+        }
+        .status-option {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 3px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .status-option:hover {
+            background-color: #f5f5f5;
+        }
+        .status-preview {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+        }
+        .submit-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1em;
+            transition: background-color 0.2s;
+        }
+        .submit-btn:hover {
+            background: #3e8e41;
+        }
+        select.form-control {
+            width: 100%;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="office-container">
+        <h1>Admin - Visão do Escritório</h1>
+        {% if messages %}
+        <div style="margin-bottom: 20px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" style="padding: 10px; margin-bottom: 10px; border-radius: 4px;
+                {% if message.tags == 'error' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+                {% else %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="modified_pa" value="" id="global-modified-pa">
+            
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('inss')">INSS</div>
+                <div class="tab" onclick="switchTab('siae-leo')">SIAPE LEO</div>
+                <div class="tab" onclick="switchTab('siae-dion')">SIAPE DION</div>
+                <div class="tab" onclick="switchTab('estagio')">Estágio</div>
+            </div>
+
+            <div id="inss" class="tab-content active">
+                <div class="columns-container">
+                    {% for column in inss_columns %}
+                    <div class="column">
+                        {% for workstation, form in column %}
+                        <div class="workstation">
+                            <div class="workstation-number">{{ workstation.sequence }}</div>
+                            <div class="employee-name">
+                                {{ form.employee }}
+                                <select name="{{ form.prefix }}-sector" class="sector-select" onchange="handleModification('{{ workstation.id }}', 'sector')">
+                                    <option value="INSS" {% if workstation.employee and workstation.employee.sector == 'INSS' %}selected{% endif %}>INSS</option>
+                                    <option value="SIAPE LEO" {% if workstation.employee and workstation.employee.sector == 'SIAPE LEO' %}selected{% endif %}>SIAPE LEO</option>
+                                    <option value="SIAPE DION" {% if workstation.employee and workstation.employee.sector == 'SIAPE DION' %}selected{% endif %}>SIAPE DION</option>
+                                    <option value="ESTAGIO" {% if workstation.employee and workstation.employee.sector == 'ESTAGIO' %}selected{% endif %}>Estágio</option>
+                                </select>
+                                <input type="hidden" name="{{ form.prefix }}-status"
+                                       value="{{ workstation.status }}" class="status-input">
+                            </div>
+                            <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
+                            <div class="status-container">
+                                <div class="status-btn
+                                    {% if workstation.status == 'OCCUPIED' %}status-occupied
+                                    {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
+                                    {% else %}status-issue{% endif %}"
+                                    onclick="toggleStatusOptions(this)"></div>
+                                <div class="status-options">
+                                    <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')">
+                                        <div class="status-preview status-occupied"></div>
+                                        <span>Ocupada</span>
+                                    </div>
+                                    <div class="status-option" onclick="selectStatus(this, 'UNOCCUPIED', 'status-unoccupied', '{{ workstation.id }}')">
+                                        <div class="status-preview status-unoccupied"></div>
+                                        <span>Vaga</span>
+                                    </div>
+                                    <div class="status-option" onclick="selectStatus(this, 'MAINTENANCE', 'status-issue', '{{ workstation.id }}')">
+                                        <div class="status-preview status-issue"></div>
+                                        <span>Manutenção</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="siae-leo" class="tab-content">
+                <div class="columns-container">
+                    {% for column in siae_leo_columns %}
+                    <div class="column">
+                        {% for workstation, form in column %}
+                        <div class="workstation">
+                            <div class="workstation-number">{{ workstation.sequence }}</div>
+                            <div class="employee-name">
+                                {{ form.employee }}
+                                <select name="{{ form.prefix }}-sector" class="sector-select" onchange="handleModification('{{ workstation.id }}', 'sector')">
+                                    <option value="INSS" {% if workstation.employee and workstation.employee.sector == 'INSS' %}selected{% endif %}>INSS</option>
+                                    <option value="SIAPE LEO" {% if workstation.employee and workstation.employee.sector == 'SIAPE LEO' %}selected{% endif %}>SIAPE LEO</option>
+                                    <option value="SIAPE DION" {% if workstation.employee and workstation.employee.sector == 'SIAPE DION' %}selected{% endif %}>SIAPE DION</option>
+                                    <option value="ESTAGIO" {% if workstation.employee and workstation.employee.sector == 'ESTAGIO' %}selected{% endif %}>Estágio</option>
+                                </select>
+                                <input type="hidden" name="{{ form.prefix }}-status"
+                                       value="{{ workstation.status }}" class="status-input">
+                            </div>
+                            <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
+                            <div class="status-container">
+                                <div class="status-btn
+                                    {% if workstation.status == 'OCCUPIED' %}status-occupied
+                                    {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
+                                    {% else %}status-issue{% endif %}"
+                                    onclick="toggleStatusOptions(this)"></div>
+                                <div class="status-options">
+                                    <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')">
+                                        <div class="status-preview status-occupied"></div>
+                                        <span>Ocupada</span>
+                                    </div>
+                                    <div class="status-option" onclick="selectStatus(this, 'UNOCCUPIED', 'status-unoccupied', '{{ workstation.id }}')">
+                                        <div class="status-preview status-unoccupied"></div>
+                                        <span>Vaga</span>
+                                    </div>
+                                    <div class="status-option" onclick="selectStatus(this, 'MAINTENANCE', 'status-issue', '{{ workstation.id }}')">
+                                        <div class="status-preview status-issue"></div>
+                                        <span>Manutenção</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="siae-dion" class="tab-content">
+                <div class="columns-container">
+                    {% for column in siae_dion_columns %}
+                    <div class="column">
+                        {% for workstation, form in column %}
+                        <div class="workstation">
+                            <div class="workstation-number">{{ workstation.sequence }}</div>
+                            <div class="employee-name">
+                                {{ form.employee }}
+                                <select name="{{ form.prefix }}-sector" class="sector-select" onchange="handleModification('{{ workstation.id }}', 'sector')">
+                                    <option value="INSS" {% if workstation.employee and workstation.employee.sector == 'INSS' %}selected{% endif %}>INSS</option>
+                                    <option value="SIAPE LEO" {% if workstation.employee and workstation.employee.sector == 'SIAPE LEO' %}selected{% endif %}>SIAPE LEO</option>
+                                    <option value="SIAPE DION" {% if workstation.employee and workstation.employee.sector == 'SIAPE DION' %}selected{% endif %}>SIAPE DION</option>
+                                    <option value="ESTAGIO" {% if workstation.employee and workstation.employee.sector == 'ESTAGIO' %}selected{% endif %}>Estágio</option>
+                                </select>
+                                <input type="hidden" name="{{ form.prefix }}-status"
+                                       value="{{ workstation.status }}" class="status-input">
+                            </div>
+                            <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
+                            <div class="status-container">
+                                <div class="status-btn
+                                    {% if workstation.status == 'OCCUPIED' %}status-occupied
+                                    {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
+                                    {% else %}status-issue{% endif %}"
+                                    onclick="toggleStatusOptions(this)"></div>
+                                <div class="status-options">
+                                    <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')">
+                                        <div class="status-preview status-occupied"></div>
+                                        <span>Ocupada</span>
+                                    </div>
+                                    <div class="status-option" onclick="selectStatus(this, 'UNOCCUPIED', 'status-unoccupied', '{{ workstation.id }}')">
+                                        <div class="status-preview status-unoccupied"></div>
+                                        <span>Vaga</span>
+                                    </div>
+                                    <div class="status-option" onclick="selectStatus(this, 'MAINTENANCE', 'status-issue', '{{ workstation.id }}')">
+                                        <div class="status-preview status-issue"></div>
+                                        <span>Manutenção</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="estagio" class="tab-content">
+                <div class="columns-container">
+                    {% for column in estagio_columns %}
+                    <div class="column">
+                        {% for workstation, form in column %}
+                        <div class="workstation">
+                            <div class="workstation-number">{{ workstation.sequence }}</div>
+                            <div class="employee-name">
+                                {{ form.employee }}
+                                <select name="{{ form.prefix }}-sector" class="sector-select" onchange="handleModification('{{ workstation.id }}', 'sector')">
+                                    <option value="INSS" {% if workstation.employee and workstation.employee.sector == 'INSS' %}selected{% endif %}>INSS</option>
+                                    <option value="SIAPE LEO" {% if workstation.employee and workstation.employee.sector == 'SIAPE LEO' %}selected{% endif %}>SIAPE LEO</option>
+                                    <option value="SIAPE DION" {% if workstation.employee and workstation.employee.sector == 'SIAPE DION' %}selected{% endif %}>SIAPE DION</option>
+                                    <option value="ESTAGIO" {% if workstation.employee and workstation.employee.sector == 'ESTAGIO' %}selected{% endif %}>Estágio</option>
+                                </select>
+                                <input type="hidden" name="{{ form.prefix }}-status"
+                                       value="{{ workstation.status }}" class="status-input">
+                            </div>
+                            <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
+                            <div class="status-container">
+                                <div class="status-btn
+                                    {% if workstation.status == 'OCCUPIED' %}status-occupied
+                                    {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
+                                    {% else %}status-issue{% endif %}"
+                                    onclick="toggleStatusOptions(this)"></div>
+                                <div class="status-options">
+                                    <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')">
+                                        <div class="status-preview status-occupied"></div>
+                                        <span>Ocupada</span>
+                                    </div>
+                                    <div class="status-option" onclick="selectStatus(this, 'UNOCCUPIED', 'status-unoccupied', '{{ workstation.id }}')">
+                                        <div class="status-preview status-unoccupied"></div>
+                                        <span>Vaga</span>
+                                    </div>
+                                    <div class="status-option" onclick="selectStatus(this, 'MAINTENANCE', 'status-issue', '{{ workstation.id }}')">
+                                        <div class="status-preview status-issue"></div>
+                                        <span>Manutenção</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="submit" class="submit-btn">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Esconde todos os conteúdos de abas
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove a classe active de todas as abas
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostra o conteúdo da aba selecionada
+            document.getElementById(tabId).classList.add('active');
+            
+            // Ativa a aba selecionada
+            event.currentTarget.classList.add('active');
+        }
+
+        function handleModification(paId, field = null) {
+            document.getElementById('global-modified-pa').value = paId;
+            if (field) {
+                const input = document.querySelector(`[name="${paId}-${field}"]`);
+                if (input) {
+                    input.dispatchEvent(new Event('change'));
+                }
+            }
+        }
+
+        function toggleStatusOptions(btn) {
+            // Fecha outros menus abertos
+            document.querySelectorAll('.status-options').forEach(el => {
+                if (el !== btn.nextElementSibling) {
+                    el.style.display = 'none';
+                }
+            });
+            
+            // Abre/fecha o menu atual
+            const options = btn.nextElementSibling;
+            options.style.display = options.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function selectStatus(option, statusValue, statusClass, paId) {
+            const workstation = option.closest('.workstation');
+            const statusBtn = workstation.querySelector('.status-btn');
+            const statusInput = workstation.querySelector('.status-input');
+            const formPrefix = statusInput.name.split('-')[0];
+            
+            // Atualiza visual
+            statusBtn.className = 'status-btn ' + statusClass;
+            
+            // Atualiza ambos os campos de status
+            statusInput.value = statusValue;
+            handleModification(paId, 'status');
+            
+            // Atualiza o campo do formulário Django
+            const djangoStatusField = document.querySelector(`[name="${formPrefix}-status"]`);
+            if (djangoStatusField) {
+                djangoStatusField.value = statusValue;
+            }
+            
+            // Fecha o menu
+            option.closest('.status-options').style.display = 'none';
+        }
+
+        // Adiciona listener para mudanças no employee
+        document.querySelectorAll('select[name$="-employee"]').forEach(select => {
+            select.addEventListener('change', function() {
+                const paId = this.name.split('-')[0];
+                handleModification(paId, 'employee');
+            });
+        });
+
+        // Adiciona listener para mudanças no sector
+        document.querySelectorAll('select[name$="-sector"]').forEach(select => {
+            select.addEventListener('change', function() {
+                const paId = this.name.split('-')[0];
+                handleModification(paId, 'sector');
+            });
+        });
+
+        // Fecha menus ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.status-container')) {
+                document.querySelectorAll('.status-options').forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

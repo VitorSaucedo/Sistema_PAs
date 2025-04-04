@@ -1,95 +1,166 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-from .models import Employee, Workstation
-from .forms import EmployeeForm, WorkstationForm
+from django.shortcuts import render, redirect, HttpResponse
+from django.db import transaction
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib import messages
+from .models import Workstation, Employee
+from .forms import WorkstationForm
+from django.http import JsonResponse
 
-class EmployeeListView(ListView):
-    model = Employee
-    template_name = 'pam/employee_list.html'
-    context_object_name = 'employees'
-    paginate_by = 10
-
-
-class WorkstationCreateView(CreateView):
-    model = Workstation
-    form_class = WorkstationForm
-    template_name = 'pam/workstation_form.html'
-    success_url = reverse_lazy('pam:workstation_list')
-
-    def get_initial(self):
-        initial = super().get_initial()
-        self.preselected_category = self.request.GET.get('category')
-        if self.preselected_category:
-            initial['category'] = self.preselected_category
-        return initial
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        if hasattr(self, 'preselected_category') and self.preselected_category:
-            kwargs['preselected_category'] = self.preselected_category
-        return kwargs
-
-class EmployeeCreateView(CreateView):
-    model = Employee
-    form_class = EmployeeForm
-    template_name = 'pam/employee_form.html'
-    success_url = reverse_lazy('pam:employee_list')
-
-class EmployeeUpdateView(UpdateView):
-    model = Employee
-    form_class = EmployeeForm
-    template_name = 'pam/employee_form.html'
-    success_url = reverse_lazy('pam:employee_list')
-
-class EmployeeDeleteView(DeleteView):
-    model = Employee
-    template_name = 'pam/employee_confirm_delete.html'
-    success_url = reverse_lazy('pam:employee_list')
-
-class WorkstationListView(ListView):
-    model = Workstation
-    template_name = 'pam/workstation_list.html'
+def is_admin(user):
+    return user.is_authenticated and user.is_staff
+def office_view(request):
+    """Visualização pública do escritório"""
+    # Configura headers para evitar cache
+    response = HttpResponse()
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    # Busca dados frescos do banco (com lock para evitar race conditions)
+    with transaction.atomic():
+        # Garante que existam 12 workstations para cada setor
+        for category in ['INSS', 'SIAPE_LEO', 'SIAPE_DION', 'ESTAGIO']:
+            existing = Workstation.objects.filter(category=category).order_by('sequence')
+            existing_sequences = set(ws.sequence for ws in existing)
+            
+            # Cria workstations faltantes
+            for i in range(1, 13):
+                if i not in existing_sequences:
+                    Workstation.objects.get_or_create(
+                        category=category,
+                        sequence=i,
+                        defaults={'status': 'UNOCCUPIED'}
+                    )
         
-        categories = [
-            {
-                'name': 'Estágio',
-                'original_value': 'ESTAGIO',
-                'workstations': Workstation.objects.filter(category='ESTAGIO')
-            },
-            {
-                'name': 'INSS',
-                'original_value': 'INSS',
-                'workstations': Workstation.objects.filter(category='INSS')
-            },
-            {
-                'name': 'SIAPE Dion',
-                'original_value': 'SIAPE_DION',
-                'workstations': Workstation.objects.filter(category='SIAPE_DION')
-            },
-            {
-                'name': 'SIAPE Leo',
-                'original_value': 'SIAPE_LEO',
-                'workstations': Workstation.objects.filter(category='SIAPE_LEO')
-            }
-        ]
+        # Busca todas as 12 workstations de cada setor
+        inss_workstations = list(Workstation.objects.select_for_update()
+                               .filter(category='INSS')
+                               .order_by('sequence'))
+        siae_leo_workstations = list(Workstation.objects.select_for_update()
+                                   .filter(category='SIAPE_LEO')
+                                   .order_by('sequence'))
+        siae_dion_workstations = list(Workstation.objects.select_for_update()
+                                    .filter(category='SIAPE_DION')
+                                    .order_by('sequence'))
+        estagio_workstations = list(Workstation.objects.select_for_update()
+                                  .filter(category='ESTAGIO')
+                                  .order_by('sequence'))
+    
+    # Organiza cada grupo em colunas 6x2 (de baixo para cima)
+    def organize_columns(workstations):
+        columns = [[], []]
+        for i, ws in enumerate(workstations):
+            columns[i // 6].append(ws)
+        return [list(reversed(col)) for col in columns]
+    
+    inss_columns = organize_columns(inss_workstations)
+    siae_leo_columns = organize_columns(siae_leo_workstations)
+    siae_dion_columns = organize_columns(siae_dion_workstations)
+    estagio_columns = organize_columns(estagio_workstations)
+    
+    return render(request, 'pam/office_view.html', {
+        'inss_columns': inss_columns,
+        'siae_leo_columns': siae_leo_columns,
+        'siae_dion_columns': siae_dion_columns,
+        'estagio_columns': estagio_columns
+    })
+
+@user_passes_test(is_admin)
+def admin_office_view(request):
+    """Visualização administrativa do escritório"""
+    # Garante que existam 12 workstations para cada setor
+    for category in ['INSS', 'SIAPE_LEO', 'SIAPE_DION', 'ESTAGIO']:
+        existing = Workstation.objects.filter(category=category).order_by('sequence')
+        existing_sequences = set(ws.sequence for ws in existing)
         
-        context['categories'] = categories
-        return context
-
-class WorkstationUpdateView(UpdateView):
-    model = Workstation
-    form_class = WorkstationForm
-    template_name = 'pam/workstation_form.html'
-    success_url = reverse_lazy('pam:workstation_list')
-
-class WorkstationDeleteView(DeleteView):
-    model = Workstation
-    template_name = 'pam/workstation_confirm_delete.html'
-    success_url = reverse_lazy('pam:workstation_list')
-
-def home(request):
-    return render(request, 'pam/home.html')
+        # Cria workstations faltantes
+        for i in range(1, 13):
+            if i not in existing_sequences:
+                Workstation.objects.get_or_create(
+                    category=category,
+                    sequence=i,
+                    defaults={'status': 'UNOCCUPIED'}
+                )
+    
+    # Busca todas as 12 workstations de cada setor
+    inss_workstations = Workstation.objects.filter(category='INSS').order_by('sequence')
+    siae_leo_workstations = Workstation.objects.filter(category='SIAPE_LEO').order_by('sequence')
+    siae_dion_workstations = Workstation.objects.filter(category='SIAPE_DION').order_by('sequence')
+    estagio_workstations = Workstation.objects.filter(category='ESTAGIO').order_by('sequence')
+    
+    error_message = None
+    
+    if request.method == 'POST':
+        print("Dados POST recebidos:", request.POST)  # Log dos dados recebidos
+        # Identifica qual PA foi modificada
+        modified_pa_id = request.POST.get('modified_pa')
+        if modified_pa_id:
+            try:
+                print(f"Tentando salvar workstation {modified_pa_id}")  # Log de depuração
+                workstation = Workstation.objects.get(id=modified_pa_id)
+                print(f"Status atual: {workstation.status}")  # Log status atual
+                form = WorkstationForm(request.POST, instance=workstation, prefix=modified_pa_id)
+                print(f"Dados do formulário: {form.data}")  # Log dos dados recebidos
+                if form.is_valid():
+                    print("Formulário válido, salvando...")  # Log antes de salvar
+                    # O save() do modelo já cuida de atualizar o setor do funcionário
+                    form.save()
+                    
+                    # Atualiza automaticamente o status
+                    if workstation.employee:
+                        workstation.status = 'OCCUPIED'
+                    else:
+                        workstation.status = 'UNOCCUPIED'
+                    workstation.save(update_fields=['status'])
+                    messages.success(request, 'Alterações salvas com sucesso!')
+                else:
+                    error_message = 'Erro ao salvar: Dados inválidos'
+                    # Log detalhado dos erros
+                    print("Erros detalhados no formulário:")
+                    for field, errors in form.errors.items():
+                        print(f"Campo {field}:")
+                        for error in errors:
+                            print(f" - {error}")
+                    print(f"Dados completos: {form.data}")
+            except Workstation.DoesNotExist:
+                error_message = 'Erro: Estação não encontrada'
+            except Exception as e:
+                error_message = f'Erro ao salvar alterações: {str(e)}'
+                print(f"Erro ao salvar workstation {modified_pa_id}: {str(e)}")
+        else:
+            error_message = 'Nenhuma estação foi modificada'
+        
+        # Recarrega a página com mensagem de erro se houver
+        if error_message:
+            messages.error(request, error_message)
+        return redirect('pam:admin_office_view')
+    
+    # GET request - prepara os formulários
+    def prepare_forms(workstations):
+        return [(ws, WorkstationForm(instance=ws, prefix=str(ws.id)))
+               for ws in workstations]
+    
+    inss_forms = prepare_forms(inss_workstations)
+    siae_leo_forms = prepare_forms(siae_leo_workstations)
+    siae_dion_forms = prepare_forms(siae_dion_workstations)
+    estagio_forms = prepare_forms(estagio_workstations)
+    
+    # Organiza cada grupo em colunas 6x2 (de baixo para cima)
+    def organize_columns(workstations_with_forms):
+        columns = [[], []]
+        for i, (ws, form) in enumerate(workstations_with_forms):
+            columns[i // 6].append((ws, form))
+        return [list(reversed(col)) for col in columns]
+    
+    inss_columns = organize_columns(inss_forms)
+    siae_leo_columns = organize_columns(siae_leo_forms)
+    siae_dion_columns = organize_columns(siae_dion_forms)
+    estagio_columns = organize_columns(estagio_forms)
+    
+    return render(request, 'pam/admin_office.html', {
+        'inss_columns': inss_columns,
+        'siae_leo_columns': siae_leo_columns,
+        'siae_dion_columns': siae_dion_columns,
+        'estagio_columns': estagio_columns,
+        'error_message': error_message
+    })

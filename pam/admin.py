@@ -3,9 +3,10 @@ from .models import Employee, Workstation
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'created_at')
+    list_display = ('id', 'name', 'sector', 'created_at')
     search_fields = ('name', 'id')
-    list_filter = ('created_at',)
+    list_filter = ('sector', 'created_at')
+    readonly_fields = ('sector',)  # Torna o campo sector apenas leitura
 
 @admin.register(Workstation)
 class WorkstationAdmin(admin.ModelAdmin):

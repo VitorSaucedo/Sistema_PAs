@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visão do Escritório</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .office-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 25px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+            background-color: #f1f1f1;
+            transition: all 0.3s;
+        }
+        .tab:hover {
+            background-color: #ddd;
+        }
+        .tab.active {
+            background-color: white;
+            border-color: #ddd;
+            border-bottom-color: white;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .columns-container {
+            display: flex;
+            gap: 20px;
+        }
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .workstation {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            min-height: 120px;
+            position: relative;
+        }
+        .workstation-number {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            color: #7f8c8d;
+            font-size: 0.8em;
+        }
+        .employee-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        .sector {
+            font-size: 0.8em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: #e3f2fd;
+            color: #1976d2;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .sector-mismatch {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+        .detail {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 3px;
+        }
+        .status-container {
+            position: relative;
+            margin-top: auto;
+            align-self: flex-end;
+        }
+        .status-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .status-occupied {
+            background-color: #2ecc71;
+        }
+        .status-unoccupied {
+            background-color: #f39c12;
+        }
+        .status-issue {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="office-container">
+        <h1>Visão do Escritório</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('inss')">INSS</div>
+            <div class="tab" onclick="switchTab('siae-leo')">SIAPE LEO</div>
+            <div class="tab" onclick="switchTab('siae-dion')">SIAPE DION</div>
+            <div class="tab" onclick="switchTab('estagio')">Estágio</div>
+        </div>
+
+        <div id="inss" class="tab-content active">
+            <div class="columns-container">
+                {% for column in inss_columns %}
+                <div class="column">
+                    {% for workstation in column %}
+                    <div class="workstation">
+                        <div class="workstation-number">{{ workstation.sequence }}</div>
+                        <div class="employee-name">
+                            {% if workstation.employee %}
+                                {{ workstation.employee.name }}
+                                <div class="sector {% if workstation.employee.sector != 'INSS' %}sector-mismatch{% endif %}">
+                                    {{ workstation.employee.sector }}
+                                </div>
+                            {% else %}
+                                Vaga
+                            {% endif %}
+                        </div>
+                        <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
+                        <div class="status-container">
+                            <div class="status-btn
+                                {% if workstation.status == 'OCCUPIED' %}status-occupied
+                                {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
+                                {% else %}status-issue{% endif %}"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="siae-leo" class="tab-content">
+            <div class="columns-container">
+                {% for column in siae_leo_columns %}
+                <div class="column">
+                    {% for workstation in column %}
+                    <div class="workstation">
+                        <div class="workstation-number">{{ workstation.sequence }}</div>
+                        <div class="employee-name">
+                            {% if workstation.employee %}
+                                {{ workstation.employee.name }}
+                                <div class="sector {% if workstation.employee.sector != 'SIAPE LEO' %}sector-mismatch{% endif %}">
+                                    {{ workstation.employee.sector }}
+                                </div>
+                            {% else %}
+                                Vaga
+                            {% endif %}
+                        </div>
+                        <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
+                        <div class="status-container">
+                            <div class="status-btn
+                                {% if workstation.status == 'OCCUPIED' %}status-occupied
+                                {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
+                                {% else %}status-issue{% endif %}"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="siae-dion" class="tab-content">
+            <div class="columns-container">
+                {% for column in siae_dion_columns %}
+                <div class="column">
+                    {% for workstation in column %}
+                    <div class="workstation">
+                        <div class="workstation-number">{{ workstation.sequence }}</div>
+                        <div class="employee-name">
+                            {% if workstation.employee %}
+                                {{ workstation.employee.name }}
+                                <div class="sector {% if workstation.employee.sector != 'SIAPE DION' %}sector-mismatch{% endif %}">
+                                    {{ workstation.employee.sector }}
+                                </div>
+                            {% else %}
+                                Vaga
+                            {% endif %}
+                        </div>
+                        <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
+                        <div class="status-container">
+                            <div class="status-btn
+                                {% if workstation.status == 'OCCUPIED' %}status-occupied
+                                {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
+                                {% else %}status-issue{% endif %}"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="estagio" class="tab-content">
+            <div class="columns-container">
+                {% for column in estagio_columns %}
+                <div class="column">
+                    {% for workstation in column %}
+                    <div class="workstation">
+                        <div class="workstation-number">{{ workstation.sequence }}</div>
+                        <div class="employee-name">
+                            {% if workstation.employee %}
+                                {{ workstation.employee.name }}
+                                <div class="sector {% if workstation.employee.sector != 'ESTAGIO' %}sector-mismatch{% endif %}">
+                                    {{ workstation.employee.sector }}
+                                </div>
+                            {% else %}
+                                Vaga
+                            {% endif %}
+                        </div>
+                        <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
+                        <div class="status-container">
+                            <div class="status-btn
+                                {% if workstation.status == 'OCCUPIED' %}status-occupied
+                                {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
+                                {% else %}status-issue{% endif %}"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Esconde todos os conteúdos de abas
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove a classe active de todas as abas
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostra o conteúdo da aba selecionada
+            document.getElementById(tabId).classList.add('active');
+            
+            // Ativa a aba selecionada
+            event.currentTarget.classList.add('active');
+        }
+
+        // Auto-refresh a cada 30 segundos
+        setTimeout(function(){
+            window.location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>

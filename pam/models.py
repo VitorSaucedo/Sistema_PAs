@@ -2,7 +2,20 @@ from django.db import models
 from django.core.validators import MinLengthValidator
 
 class Employee(models.Model):
+    SECTOR_CHOICES = [
+        ('INSS', 'INSS'),
+        ('SIAPE_LEO', 'SIAPE Leo'),
+        ('SIAPE_DION', 'SIAPE Dion'),
+        ('ESTAGIO', 'Estágio'),
+    ]
+    
     name = models.CharField(max_length=100, verbose_name="Nome")
+    sector = models.CharField(
+        max_length=20,
+        choices=SECTOR_CHOICES,
+        verbose_name="Setor",
+        default='INSS'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -12,10 +25,16 @@ class Employee(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return f"{self.name} (ID: {self.id})"
+        return f"{self.name} ({self.get_sector_display()}) (ID: {self.id})"
 
 
 class Workstation(models.Model):
+    STATUS_CHOICES = [
+        ('OCCUPIED', 'Ocupada'),
+        ('UNOCCUPIED', 'Vaga'),
+        ('MAINTENANCE', 'Manutenção'),
+    ]
+    
     CATEGORY_CHOICES = [
         ('ESTAGIO', 'Estágio'),
         ('INSS', 'INSS'),
@@ -34,8 +53,14 @@ class Workstation(models.Model):
         editable=False,
         null=True
     )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        verbose_name="Status",
+        default='UNOCCUPIED'
+    )
     
-    employee = models.OneToOneField(
+    employee = models.ForeignKey(
         Employee,
         on_delete=models.SET_NULL,
         null=True,
@@ -57,19 +82,34 @@ class Workstation(models.Model):
         ordering = ['category', 'sequence']
 
     def save(self, *args, **kwargs):
-        if not self.sequence:  # Só gera nova sequência se não tiver definida
+        # Só atualiza status automaticamente se não foi definido manualmente
+        if not self.pk or 'status' not in kwargs.get('update_fields', []):
+            if self.status != 'MAINTENANCE':
+                if not self.employee:
+                    self.status = 'UNOCCUPIED'
+                elif not all([self.monitor, self.keyboard, self.mouse]):
+                    self.status = 'MAINTENANCE'
+                else:
+                    self.status = 'OCCUPIED'
+        
+        # Atualiza o setor do funcionário baseado na categoria da workstation
+        if self.employee and hasattr(self.employee, 'sector'):
+            # Mapeia categoria da workstation para setor do funcionário
+            sector_map = {
+                'INSS': 'INSS',
+                'SIAPE_LEO': 'SIAPE_LEO',
+                'SIAPE_DION': 'SIAPE_DION',
+                'ESTAGIO': 'ESTAGIO'
+            }
+            self.employee.sector = sector_map.get(self.category, 'INSS')
+            self.employee.save(update_fields=['sector'])
+                
+        if not self.sequence:
             last = Workstation.objects.filter(
                 category=self.category
             ).order_by('-sequence').first()
             self.sequence = last.sequence + 1 if last else 1
         super().save(*args, **kwargs)
-
-    def clean(self):
-        if self.sequence and Workstation.objects.filter(
-            category=self.category,
-            sequence=self.sequence
-        ).exclude(pk=self.pk).exists():
-            raise ValidationError('Já existe uma estação com esta sequência nesta categoria')
 
     def __str__(self):
         return f"PA {self.category}-{self.sequence} - {self.employee.name if self.employee else 'Sem funcionário'}"

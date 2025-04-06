@@ -25,7 +25,8 @@ class Employee(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return f"{self.name} ({self.get_sector_display()}) (ID: {self.id})"
+        # Display only the name, sector is handled elsewhere
+        return self.name
 
 
 class Workstation(models.Model):
@@ -93,7 +94,7 @@ class Workstation(models.Model):
                     self.status = 'OCCUPIED'
         
         # Atualiza o setor do funcionário baseado na categoria da workstation
-        if self.employee and hasattr(self.employee, 'sector'):
+        if self.employee: # Removed hasattr check
             # Mapeia categoria da workstation para setor do funcionário
             sector_map = {
                 'INSS': 'INSS',
@@ -101,14 +102,21 @@ class Workstation(models.Model):
                 'SIAPE_DION': 'SIAPE_DION',
                 'ESTAGIO': 'ESTAGIO'
             }
-            self.employee.sector = sector_map.get(self.category, 'INSS')
-            self.employee.save(update_fields=['sector'])
+            new_sector = sector_map.get(self.category, 'INSS') # Default to INSS if category not found
+            if self.employee.sector != new_sector:
+                self.employee.sector = new_sector
+                self.employee.save(update_fields=['sector'])
                 
         if not self.sequence:
             last = Workstation.objects.filter(
                 category=self.category
             ).order_by('-sequence').first()
             self.sequence = last.sequence + 1 if last else 1
+            
+        # If status is set to UNOCCUPIED, ensure no employee is assigned
+        if self.status == 'UNOCCUPIED' and self.employee is not None:
+            self.employee = None
+            
         super().save(*args, **kwargs)
 
     def __str__(self):

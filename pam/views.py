@@ -103,15 +103,31 @@ def admin_office_view(request):
                 print(f"Dados do formulário: {form.data}")  # Log dos dados recebidos
                 if form.is_valid():
                     print("Formulário válido, salvando...")  # Log antes de salvar
-                    # O save() do modelo já cuida de atualizar o setor do funcionário
-                    form.save()
+                    # Save the form first to update the employee if selected
+                    workstation = form.save()
                     
-                    # Atualiza automaticamente o status
-                    if workstation.employee:
-                        workstation.status = 'OCCUPIED'
-                    else:
+                    # Get the status submitted by the user
+                    submitted_status = request.POST.get(f'{modified_pa_id}-status')
+                    
+                    # Apply logic based on submitted status
+                    if submitted_status == 'UNOCCUPIED':
+                        workstation.employee = None
                         workstation.status = 'UNOCCUPIED'
-                    workstation.save(update_fields=['status'])
+                    elif submitted_status == 'MAINTENANCE':
+                        # Keep employee assigned by form, just update status
+                        workstation.status = 'MAINTENANCE'
+                    elif submitted_status == 'OCCUPIED':
+                         # Keep employee assigned by form, just update status
+                        workstation.status = 'OCCUPIED'
+                        # Optional: Add check here if workstation.employee is None and raise error?
+                    else:
+                        # Handle potentially invalid status if necessary, maybe log it
+                        # For now, just assign it if it's a valid choice in the model
+                        if submitted_status in dict(Workstation.STATUS_CHOICES):
+                             workstation.status = submitted_status
+
+                    # Save the final status and potentially cleared employee
+                    workstation.save(update_fields=['employee', 'status'])
                     messages.success(request, 'Alterações salvas com sucesso!')
                 else:
                     error_message = 'Erro ao salvar: Dados inválidos'

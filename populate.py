@@ -17,8 +17,9 @@ def populate():
     
     # Cria funcionários com numeração específica
     employees = [
+        # Existing employees
         {'name': 'Ana Maria', 'pa_number': 1},
-        {'name': 'Maria Souza', 'pa_number': 2}, 
+        {'name': 'Maria Souza', 'pa_number': 2},
         {'name': 'Carlos Oliveira', 'pa_number': 3},
         {'name': 'Ana Santos', 'pa_number': 4},
         {'name': 'Pedro Costa', 'pa_number': 5},
@@ -26,7 +27,18 @@ def populate():
         {'name': 'Lucas Pereira', 'pa_number': 7},
         {'name': 'Juliana Almeida', 'pa_number': 8},
         {'name': 'Ricardo Fernandes', 'pa_number': 9},
-        {'name': 'Patrícia Gomes', 'pa_number': 10}
+        {'name': 'Patrícia Gomes', 'pa_number': 10},
+        # New employees
+        {'name': 'Fernanda Alves', 'pa_number': 11},
+        {'name': 'Rodrigo Martins', 'pa_number': 12},
+        {'name': 'Camila Ribeiro', 'pa_number': 13},
+        {'name': 'Gustavo Silva', 'pa_number': 14},
+        {'name': 'Beatriz Ferreira', 'pa_number': 15},
+        {'name': 'Rafael Barbosa', 'pa_number': 16},
+        {'name': 'Larissa Castro', 'pa_number': 17},
+        {'name': 'Thiago Mendes', 'pa_number': 18},
+        {'name': 'Sofia Nogueira', 'pa_number': 19},
+        {'name': 'Bruno Carvalho', 'pa_number': 20}
     ]
     
     # Cria e salva funcionários

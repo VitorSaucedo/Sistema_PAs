@@ -7,30 +7,35 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
+            background-color: #f5f7fa; /* Default light background */
             margin: 0;
-            padding: 20px;
+            padding: 10px; /* Reduced */
+            color: #2c3e50; /* Default text color */
+        }
+        body.dark-theme { /* Apply dark theme directly to body if class is present */
+             background-color: #121212;
+             color: #e0e0e0;
         }
         .office-container {
-            max-width: 1200px;
+            max-width: 1000px; /* Reduced from 1200px */
             margin: 0 auto;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 25px;
+            padding: 12px;
         }
         h1 {
             color: #2c3e50;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px; /* Reduced */
         }
         .tabs {
             display: flex;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Reduced */
             border-bottom: 1px solid #ddd;
         }
         .tab {
-            padding: 10px 20px;
+            padding: 8px 15px; /* Reduced */
             cursor: pointer;
             border: 1px solid transparent;
             border-bottom: none;
@@ -49,32 +54,93 @@
             color: #2c3e50;
             font-weight: 600;
         }
+        .tab-panels-container {
+           position: relative;
+           min-height: 600px; /* Ensure minimum height, adjust as needed */
+           margin-top: -1px;
+           overflow: hidden; /* Restore for clipping sliding panels */
+           /* isolation: isolate; */ /* Removed to test if it affects dropdown clipping */
+           display: flex; /* Keep flexbox for potential future use or alignment */
+           align-items: stretch; /* Stretch children (tab-content) */
+           justify-content: flex-start; /* Align children to start */
+           border: 1px solid #ddd;
+           border-top: none;
+        }
         .tab-content {
-            display: none;
+           position: absolute; /* Needed for animation */
+           width: 100%;
+           height: 100%;
+           top: 0;
+           left: 0;
+           transition: transform 0.4s ease-in-out; /* Revert duration and timing */
+           /* transform: translateX(100%); */ /* Removed: Initial position set by JS */
+           opacity: 0; /* Make non-active tabs invisible instantly */
+           display: flex; /* Make tab content a flex container */
+           justify-content: center; /* Center its child horizontally */
+           align-items: center; /* Center child vertically */
+           /* padding-top: 15px; */ /* Removed for true vertical centering */
+           box-sizing: border-box;
+           overflow-y: auto; /* Allow vertical scroll if content overflows */
         }
         .tab-content.active {
-            display: block;
+           /* display: block; */ /* Remove, handled by opacity/transform */
+           transform: translateX(0); /* Restore active position */
+           opacity: 1; /* Make active tab visible instantly */
+           z-index: 1; /* Restore active stacking */
+        }
+        /* New classes for bidirectional animation */
+        .tab-content.prepare-left {
+            transform: translateX(-100%);
+            transition: none; /* Apply initial position instantly */
+        }
+        .tab-content.prepare-right {
+            transform: translateX(100%);
+            transition: none; /* Apply initial position instantly */
+        }
+        .tab-content.exiting-left {
+            transform: translateX(-100%);
+            opacity: 1; /* Keep visible during exit */
+            z-index: 0;
+        }
+        .tab-content.exiting-right {
+            transform: translateX(100%);
+            opacity: 1; /* Keep visible during exit */
+            z-index: 0;
+        }
+
+        .columns-container {
+            display: flex;
+            gap: 10px; /* Reduced */
         }
         .columns-container {
             display: flex;
-            gap: 20px;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center; /* Center columns horizontally */
+            padding: 15px; /* Add padding around the columns */
+            padding-top: 40px; /* Added top padding for dropdown space */
+            width: 100%; /* Take full width of parent */
+            box-sizing: border-box;
         }
         .column {
-            flex: 1;
+            width: 170px; /* Increased width further */
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 6px;
         }
         .workstation {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+            padding: 6px;
             display: flex;
             flex-direction: column;
-            min-height: 120px;
+            height: 80px; /* Increased height */
+            width: 100%;
+            box-sizing: border-box;
             position: relative;
             transition: transform 0.2s, box-shadow 0.2s;
+            min-width: 0;
         }
         .workstation:hover {
             transform: translateY(-2px);
@@ -89,9 +155,12 @@
         }
         .employee-name {
             font-weight: 600;
-            font-size: 1.1em;
-            margin-bottom: 5px;
+            font-size: 0.85em;
+            margin-bottom: 2px;
             color: #2c3e50;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .sector {
             font-size: 0.8em;
@@ -100,38 +169,43 @@
             background-color: #e3f2fd;
             color: #1976d2;
             display: inline-block;
-            margin-bottom: 5px;
+            margin-bottom: 3px; /* Reduced */
         }
         .sector-mismatch {
             background-color: #ffebee;
             color: #d32f2f;
         }
-        .sector-select {
+        .sector-select { /* This class might not exist anymore, but reducing just in case */
             width: 100%;
-            padding: 5px;
-            border-radius: 4px;
+            padding: 4px; /* Reduced */
+            border-radius: 3px; /* Reduced */
             border: 1px solid #ddd;
-            margin-bottom: 5px;
-            font-size: 0.9em;
+            margin-bottom: 3px; /* Reduced */
+            font-size: 0.85em; /* Reduced */
         }
         .detail {
-            font-size: 0.9em;
+            font-size: 0.8em; /* Further Reduced */
             color: #7f8c8d;
-            margin-bottom: 3px;
+            margin-bottom: 1px; /* Further Reduced */
         }
         .status-container {
-            position: relative;
-            margin-top: auto;
-            align-self: flex-end;
-        }
-        .status-btn {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
             width: 20px;
             height: 20px;
+        }
+        .status-btn {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
             border: 2px solid white;
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: transform 0.2s;
+            position: absolute;
+            bottom: 0;
+            right: 0;
         }
         .status-btn:hover {
             transform: scale(1.1);
@@ -147,24 +221,34 @@
         }
         .status-options {
             position: absolute;
-            bottom: 30px;
+            bottom: calc(100% + 5px);
             right: 0;
             background: white;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            padding: 10px;
-            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            padding: 8px;
+            z-index: 100;
             display: none;
-            width: 150px;
+            width: 160px;
+            pointer-events: auto;
+        }
+        .tabs {
+            position: relative;
+            z-index: 10; /* Below dropdown but above panels */
+        }
+        .workstation {
+            position: relative; /* Ensure dropdown is positioned relative to card */
+            overflow: visible; /* Allow dropdown to extend beyond card */
         }
         .status-option {
             display: flex;
             align-items: center;
-            padding: 8px;
-            margin: 3px 0;
+            padding: 6px 8px;
+            margin: 2px 0;
             cursor: pointer;
             border-radius: 4px;
             transition: background-color 0.2s;
+            font-size: 0.85em;
         }
         .status-option:hover {
             background-color: #f5f5f5;
@@ -183,7 +267,7 @@
             padding: 10px 20px;
             border-radius: 4px;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 15px; /* Reduced */
             font-size: 1em;
             transition: background-color 0.2s;
         }
@@ -192,21 +276,130 @@
         }
         select.form-control {
             width: 100%;
-            padding: 5px;
-            border-radius: 4px;
+            padding: 3px; /* Further Reduced */
+            border-radius: 3px; /* Further Reduced */
             border: 1px solid #ddd;
+            font-size: 0.9em; /* Added to shrink select */
+        }
+        .alert { /* Base alert styling */
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+        }
+        .alert-error { /* Error specific styling */
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        .alert-success { /* Success specific styling */
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+
+        /* Estagio specific CSS overrides removed */
+    </style>
+    <style> /* Dark Theme Overrides */
+        .dark-theme body {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        .dark-theme .office-container {
+            background: #1e1e1e;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .dark-theme h1 {
+            color: #e0e0e0;
+        }
+        .dark-theme .tabs {
+            border-bottom-color: #444;
+        }
+        .dark-theme .tab {
+            background-color: #333;
+            color: #bbb;
+            border-color: transparent;
+        }
+        .dark-theme .tab:hover {
+            background-color: #444;
+            color: #ddd;
+        }
+        .dark-theme .tab.active {
+            background-color: #1e1e1e; /* Match container background */
+            border-color: #444;
+            border-bottom-color: #1e1e1e; /* Hide bottom border */
+            color: #fff;
+        }
+         .dark-theme .tab-panels-container {
+            border-color: #444;
+        }
+        .dark-theme .workstation {
+            background: #2d2d2d;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.2);
+            border: 1px solid #444; /* Add subtle border */
+        }
+         .dark-theme .workstation:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border-color: #555;
+        }
+        .dark-theme .employee-name {
+            color: #e0e0e0;
+        }
+        .dark-theme .workstation-number,
+        .dark-theme .detail {
+            color: #999;
+        }
+        .dark-theme .status-btn {
+            border-color: #2d2d2d; /* Match workstation background */
+        }
+        /* Admin specific dark theme styles */
+        .dark-theme select.form-control {
+            background-color: #333;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+        .dark-theme select.form-control option {
+             background-color: #333;
+             color: #e0e0e0;
+        }
+        .dark-theme .status-options {
+            background: #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #555;
+        }
+        .dark-theme .status-option {
+            color: #e0e0e0;
+        }
+        .dark-theme .status-option:hover {
+            background-color: #444;
+        }
+        .dark-theme .submit-btn {
+            background: #00695c; /* Darker green */
+            color: #e0e0e0;
+        }
+        .dark-theme .submit-btn:hover {
+            background: #004d40; /* Even darker green */
+        }
+        .dark-theme .alert {
+             border-color: transparent;
+        }
+        .dark-theme .alert-error {
+            background-color: #5c1a1a; /* Dark red background */
+            color: #f8d7da;
+        }
+        .dark-theme .alert-success {
+            background-color: #144a2f; /* Dark green background */
+            color: #d4edda;
         }
     </style>
 </head>
-<body>
+<body class="dark-theme">
     <div class="office-container">
         <h1>Admin - Visão do Escritório</h1>
         {% if messages %}
         <div style="margin-bottom: 20px;">
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}" style="padding: 10px; margin-bottom: 10px; border-radius: 4px;
-                {% if message.tags == 'error' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
-                {% else %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% endif %}">
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
                 {{ message }}
             </div>
             {% endfor %}
@@ -222,8 +415,9 @@
                 <div class="tab" onclick="switchTab('siae-dion')">SIAPE DION</div>
                 <div class="tab" onclick="switchTab('estagio')">Estágio</div>
             </div>
-
-            <div id="inss" class="tab-content active">
+    
+            <div class="tab-panels-container"> <!-- Added container -->
+                <div id="inss" class="tab-content active">
                 <div class="columns-container">
                     {% for column in inss_columns %}
                     <div class="column">
@@ -231,13 +425,9 @@
                         <div class="workstation">
                             <div class="workstation-number">{{ workstation.sequence }}</div>
                             <div class="employee-name">
-                                {{ form.employee }}
-                                <select name="{{ form.prefix }}-sector" class="sector-select" onchange="handleModification('{{ workstation.id }}', 'sector')">
-                                    <option value="INSS" {% if workstation.employee and workstation.employee.sector == 'INSS' %}selected{% endif %}>INSS</option>
-                                    <option value="SIAPE LEO" {% if workstation.employee and workstation.employee.sector == 'SIAPE LEO' %}selected{% endif %}>SIAPE LEO</option>
-                                    <option value="SIAPE DION" {% if workstation.employee and workstation.employee.sector == 'SIAPE DION' %}selected{% endif %}>SIAPE DION</option>
-                                    <option value="ESTAGIO" {% if workstation.employee and workstation.employee.sector == 'ESTAGIO' %}selected{% endif %}>Estágio</option>
-                                </select>
+                               {{ form.employee }}
+                               {# Sector label removed #}
+                                <!-- Sector is set automatically based on workstation category -->
                                 <input type="hidden" name="{{ form.prefix }}-status"
                                        value="{{ workstation.status }}" class="status-input">
                             </div>
@@ -278,13 +468,9 @@
                         <div class="workstation">
                             <div class="workstation-number">{{ workstation.sequence }}</div>
                             <div class="employee-name">
-                                {{ form.employee }}
-                                <select name="{{ form.prefix }}-sector" class="sector-select" onchange="handleModification('{{ workstation.id }}', 'sector')">
-                                    <option value="INSS" {% if workstation.employee and workstation.employee.sector == 'INSS' %}selected{% endif %}>INSS</option>
-                                    <option value="SIAPE LEO" {% if workstation.employee and workstation.employee.sector == 'SIAPE LEO' %}selected{% endif %}>SIAPE LEO</option>
-                                    <option value="SIAPE DION" {% if workstation.employee and workstation.employee.sector == 'SIAPE DION' %}selected{% endif %}>SIAPE DION</option>
-                                    <option value="ESTAGIO" {% if workstation.employee and workstation.employee.sector == 'ESTAGIO' %}selected{% endif %}>Estágio</option>
-                                </select>
+                               {{ form.employee }}
+                               {# Sector label removed #}
+                                <!-- Sector is set automatically based on workstation category -->
                                 <input type="hidden" name="{{ form.prefix }}-status"
                                        value="{{ workstation.status }}" class="status-input">
                             </div>
@@ -325,13 +511,9 @@
                         <div class="workstation">
                             <div class="workstation-number">{{ workstation.sequence }}</div>
                             <div class="employee-name">
-                                {{ form.employee }}
-                                <select name="{{ form.prefix }}-sector" class="sector-select" onchange="handleModification('{{ workstation.id }}', 'sector')">
-                                    <option value="INSS" {% if workstation.employee and workstation.employee.sector == 'INSS' %}selected{% endif %}>INSS</option>
-                                    <option value="SIAPE LEO" {% if workstation.employee and workstation.employee.sector == 'SIAPE LEO' %}selected{% endif %}>SIAPE LEO</option>
-                                    <option value="SIAPE DION" {% if workstation.employee and workstation.employee.sector == 'SIAPE DION' %}selected{% endif %}>SIAPE DION</option>
-                                    <option value="ESTAGIO" {% if workstation.employee and workstation.employee.sector == 'ESTAGIO' %}selected{% endif %}>Estágio</option>
-                                </select>
+                               {{ form.employee }}
+                               {# Sector label removed #}
+                                <!-- Sector is set automatically based on workstation category -->
                                 <input type="hidden" name="{{ form.prefix }}-status"
                                        value="{{ workstation.status }}" class="status-input">
                             </div>
@@ -366,30 +548,35 @@
 
             <div id="estagio" class="tab-content">
                 <div class="columns-container">
-                    {% for column in estagio_columns %}
+                    {% for column in estagio_columns %} {# Changed variable #}
                     <div class="column">
                         {% for workstation, form in column %}
                         <div class="workstation">
                             <div class="workstation-number">{{ workstation.sequence }}</div>
+                            <!-- Temporarily commented out complex content -->
                             <div class="employee-name">
-                                {{ form.employee }}
-                                <select name="{{ form.prefix }}-sector" class="sector-select" onchange="handleModification('{{ workstation.id }}', 'sector')">
-                                    <option value="INSS" {% if workstation.employee and workstation.employee.sector == 'INSS' %}selected{% endif %}>INSS</option>
-                                    <option value="SIAPE LEO" {% if workstation.employee and workstation.employee.sector == 'SIAPE LEO' %}selected{% endif %}>SIAPE LEO</option>
-                                    <option value="SIAPE DION" {% if workstation.employee and workstation.employee.sector == 'SIAPE DION' %}selected{% endif %}>SIAPE DION</option>
-                                    <option value="ESTAGIO" {% if workstation.employee and workstation.employee.sector == 'ESTAGIO' %}selected{% endif %}>Estágio</option>
-                                </select>
-                                <input type="hidden" name="{{ form.prefix }}-status"
-                                       value="{{ workstation.status }}" class="status-input">
+                               {{ form.employee }}
+                               {# Sector label removed #}
                             </div>
-                            <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
-                            <div class="status-container">
+                             <input type="hidden" name="{{ form.prefix }}-status"
+                                       value="{{ workstation.status }}" class="status-input"> <!-- RESTORED -->
+                             <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div> <!-- RESTORED -->
+                            <!-- Still commented out: employee name/form/sector -->
+                            <!--
+                            <div class="employee-name">
+                               {{ form.employee }}
+                               {% if workstation.employee %}
+                                   <span class="sector" style="margin-left: 5px;">{{ workstation.employee.get_sector_display }}</span>
+                               {% endif %}
+                            </div>
+                             -->
+                            <div class="status-container"> <!-- RESTORED -->
                                 <div class="status-btn
                                     {% if workstation.status == 'OCCUPIED' %}status-occupied
                                     {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
                                     {% else %}status-issue{% endif %}"
-                                    onclick="toggleStatusOptions(this)"></div>
-                                <div class="status-options">
+                                    onclick="toggleStatusOptions(this)"></div> <!-- RESTORED onclick -->
+                                <div class="status-options"> <!-- RESTORED options div -->
                                     <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')">
                                         <div class="status-preview status-occupied"></div>
                                         <span>Ocupada</span>
@@ -402,8 +589,8 @@
                                         <div class="status-preview status-issue"></div>
                                         <span>Manutenção</span>
                                     </div>
-                                </div>
-                            </div>
+                                </div> <!-- RESTORED options div -->
+                            </div> <!-- RESTORED -->
                         </div>
                         {% endfor %}
                     </div>
@@ -411,6 +598,8 @@
                 </div>
             </div>
 
+            <!-- Move submit button outside tab-panels-container -->
+            </div> <!-- Close tab-panels-container -->
             <div style="text-align: center; margin-top: 20px;">
                 <button type="submit" class="submit-btn">Salvar Alterações</button>
             </div>
@@ -419,21 +608,57 @@
 
     <script>
         function switchTab(tabId) {
-            // Esconde todos os conteúdos de abas
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
+            const animationDuration = 400; // Must match CSS transition duration (reverted)
+            const container = document.querySelector('.tab-panels-container');
+            const currentActiveContent = container.querySelector('.tab-content.active');
+            const targetContent = document.getElementById(tabId);
+            const tabs = Array.from(document.querySelectorAll('.tab')); // Get all tab buttons
+            // Find the clicked tab element more reliably
+            const clickedTabElement = tabs.find(tab => tab.getAttribute('onclick') === `switchTab('${tabId}')`);
+
+            if (!targetContent || targetContent === currentActiveContent || !clickedTabElement) {
+                return; // Do nothing if target is invalid, already active, or clicked tab not found
+            }
+
+            const currentIndex = tabs.findIndex(tab => tab.classList.contains('active'));
+            const targetIndex = tabs.findIndex(tab => tab === clickedTabElement);
+            const isMovingRight = targetIndex > currentIndex;
+
+            // Update tab button states
+            tabs.forEach(tab => tab.classList.remove('active'));
+            clickedTabElement.classList.add('active');
+
+            // --- Animation Logic ---
+            const animationClasses = ['active', 'prepare-left', 'prepare-right', 'exiting-left', 'exiting-right'];
+
+            // 1. Animate out the current tab content
+            if (currentActiveContent) {
+                const exitClass = isMovingRight ? 'exiting-left' : 'exiting-right';
+                // Clean slate for current content before applying exit animation
+                currentActiveContent.classList.remove(...animationClasses);
+                currentActiveContent.classList.add(exitClass);
+
+                // Clean up *only this specific* exiting class after animation
+                // Use a reference that won't change if another click happens
+                const elementToClean = currentActiveContent;
+                setTimeout(() => {
+                    elementToClean.classList.remove(exitClass);
+                }, animationDuration);
+            }
+
+            // 2. Prepare and animate in the target tab content
+            const prepareClass = isMovingRight ? 'prepare-right' : 'prepare-left';
+            // Clean slate for target content before applying prepare state
+            targetContent.classList.remove(...animationClasses);
+            targetContent.classList.add(prepareClass);
+
+            // Force reflow/repaint before adding 'active' to trigger transition
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => { // Double RAF for more robustness in some browsers
+                    targetContent.classList.remove(prepareClass);
+                    targetContent.classList.add('active');
+                });
             });
-            
-            // Remove a classe active de todas as abas
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Mostra o conteúdo da aba selecionada
-            document.getElementById(tabId).classList.add('active');
-            
-            // Ativa a aba selecionada
-            event.currentTarget.classList.add('active');
         }
 
         function handleModification(paId, field = null) {
@@ -447,16 +672,25 @@
         }
 
         function toggleStatusOptions(btn) {
-            // Fecha outros menus abertos
+            const options = btn.nextElementSibling;
+            // Ensure the options element exists before proceeding
+            if (!options) {
+                console.error("Status options element not found next to button:", btn);
+                return;
+            }
+
+            const currentlyOpen = options.style.display === 'block';
+
+            // Close all other menus first
             document.querySelectorAll('.status-options').forEach(el => {
-                if (el !== btn.nextElementSibling) {
-                    el.style.display = 'none';
+                // Check if the element is not the one we are trying to toggle
+                if (el !== options) {
+                   el.style.display = 'none';
                 }
             });
-            
-            // Abre/fecha o menu atual
-            const options = btn.nextElementSibling;
-            options.style.display = options.style.display === 'block' ? 'none' : 'block';
+
+            // Toggle the current menu's display
+            options.style.display = currentlyOpen ? 'none' : 'block';
         }
 
         function selectStatus(option, statusValue, statusClass, paId) {
@@ -470,6 +704,10 @@
             
             // Atualiza ambos os campos de status
             statusInput.value = statusValue;
+            handleModification(paId, 'status'); // Add this line to signal modification
+
+            // Fecha o menu
+            option.closest('.status-options').style.display = 'none'; // Add this line to close dropdown
             handleModification(paId, 'status');
             
             // Atualiza o campo do formulário Django

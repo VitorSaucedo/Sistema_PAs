@@ -5,532 +5,270 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visão do Escritório</title>
     <style>
+        /* --- Estilos Gerais --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa; /* Default light background */
+            background-color: #f5f7fa;
             margin: 0;
-            padding: 10px; /* Reduced */
-            color: #2c3e50; /* Default text color */
+            padding: 10px;
+            color: #2c3e50;
         }
-        body.dark-theme { /* Apply dark theme directly to body if class is present */
+        body.dark-theme {
              background-color: #121212;
              color: #e0e0e0;
         }
         .office-container {
-            max-width: 1000px; /* Reduced from 1200px */
-            margin: 0 auto;
+            max-width: 1200px;
+            margin: 20px auto;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 12px;
-            /* position: relative; */ /* Removed: Legend is now relative to tab-panels-container */
+            padding: 20px;
+            position: relative; /* Para posicionar a legenda */
         }
         h1 {
             color: #2c3e50;
             text-align: center;
-            margin-bottom: 20px; /* Reduced */
+            margin-bottom: 25px;
         }
-        .tabs {
+        /* --- Estilos para Salas e Ilhas --- */
+        .room-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        .room-header {
+            font-size: 1.6em;
+            color: #3498db;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+         .island-section {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+        }
+        .island-header {
+             font-size: 1.2em;
+             color: #5dade2;
+             margin-bottom: 10px;
+        }
+        /* --- Estilos Workstation (Visão Pública) --- */
+         .workstations-container {
             display: flex;
-            margin-bottom: 15px; /* Reduced */
-            border-bottom: 1px solid #ddd;
-        }
-        .tab {
-            padding: 8px 15px; /* Reduced */
-            cursor: pointer;
-            border: 1px solid transparent;
-            border-bottom: none;
-            border-radius: 4px 4px 0 0;
-            margin-right: 5px;
-            background-color: #f1f1f1;
-            transition: all 0.3s;
-        }
-        .tab:hover {
-            background-color: #ddd;
-        }
-        .tab.active {
-            background-color: white;
-            border-color: #ddd;
-            border-bottom-color: white;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-        .tab-panels-container {
-           position: relative;
-           min-height: 600px; /* Ensure minimum height, adjust as needed */
-           margin-top: -1px;
-           overflow: hidden; /* Restore for clipping sliding panels */
-           isolation: isolate;
-           display: flex; /* Keep flexbox for potential future use or alignment */
-           align-items: stretch; /* Stretch children (tab-content) */
-           justify-content: flex-start; /* Align children to start */
-           border: 1px solid #ddd;
-           border-top: none;
-        }
-        .tab-content {
-           position: absolute; /* Needed for animation */
-           width: 100%;
-           height: 100%;
-           top: 0;
-           left: 0;
-           transition: transform 0.4s ease-in-out; /* Revert duration and timing */
-           /* transform: translateX(100%); */ /* Removed: Initial position set by JS */
-           opacity: 0; /* Make non-active tabs invisible instantly */
-           display: flex; /* Make tab content a flex container */
-           justify-content: center; /* Center its child horizontally */
-           align-items: center; /* Center child vertically */
-           /* padding-top: 15px; */ /* Removed for true vertical centering */
-           box-sizing: border-box;
-           overflow-y: auto; /* Allow vertical scroll if content overflows */
-        }
-        .tab-content.active {
-           /* display: block; */ /* Remove, handled by opacity/transform */
-           transform: translateX(0); /* Restore active position */
-           opacity: 1; /* Make active tab visible instantly */
-           z-index: 1; /* Restore active stacking */
-        }
-        /* New classes for bidirectional animation */
-        .tab-content.prepare-left {
-            transform: translateX(-100%);
-            transition: none; /* Apply initial position instantly */
-        }
-        .tab-content.prepare-right {
-            transform: translateX(100%);
-            transition: none; /* Apply initial position instantly */
-        }
-        .tab-content.exiting-left {
-            transform: translateX(-100%);
-            opacity: 1; /* Keep visible during exit */
-            z-index: 0;
-        }
-        .tab-content.exiting-right {
-            transform: translateX(100%);
-            opacity: 1; /* Keep visible during exit */
-            z-index: 0;
-        }
-
-        .columns-container {
-            display: flex;
-            gap: 10px; /* Reduced */
-        }
-        .columns-container {
-            display: flex;
-            gap: 8px;
+            gap: 15px;
             flex-wrap: wrap;
-            justify-content: center; /* Center columns horizontally */
-            padding: 15px; /* Add padding around the columns */
-            width: 100%; /* Take full width of parent */
+            padding: 10px 0;
+            width: 100%;
             box-sizing: border-box;
-        }
-        .column {
-            width: 170px; /* Increased width further */
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
         }
         .workstation {
             background: white;
-            border-radius: 5px;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.05);
-            padding: 6px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 10px;
             display: flex;
             flex-direction: column;
-            height: 80px; /* Increased height */
-            width: 100%;
+            justify-content: center; /* Centraliza conteúdo verticalmente */
+            align-items: center; /* Centraliza conteúdo horizontalmente */
+            height: 85px; /* Ajustado */
+            width: 180px; /* Ajustado */
             box-sizing: border-box;
             position: relative;
-            transition: transform 0.2s, box-shadow 0.2s;
-            min-width: 0;
+            border: 1px solid #e0e0e0;
+            text-align: center; /* Centraliza texto */
         }
-        .workstation:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .workstation-number {
+         .workstation-number { /* ID da Workstation */
             position: absolute;
             top: 5px;
-            right: 10px;
-            color: #7f8c8d;
+            right: 8px;
+            color: #95a5a6;
             font-size: 0.8em;
-        }
-        .employee-name {
             font-weight: 600;
-            font-size: 0.85em;
-            margin-bottom: 2px;
+        }
+         .employee-name {
+            font-weight: 600;
+            font-size: 0.95em; /* Maior na view pública */
+            margin-bottom: 3px;
             color: #2c3e50;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 90%; /* Evita que nome grande empurre status */
         }
-        .sector {
+         .detail { /* Para mostrar info extra se necessário */
             font-size: 0.8em;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background-color: #e3f2fd;
-            color: #1976d2;
-            display: inline-block;
-            margin-bottom: 3px; /* Reduced */
-        }
-        .sector-mismatch {
-            background-color: #ffebee;
-            color: #d32f2f;
-        }
-        .sector-select { /* This class might not exist anymore, but reducing just in case */
-            width: 100%;
-            padding: 4px; /* Reduced */
-            border-radius: 3px; /* Reduced */
-            border: 1px solid #ddd;
-            margin-bottom: 3px; /* Reduced */
-            font-size: 0.85em; /* Reduced */
-        }
-        .detail {
-            font-size: 0.8em; /* Further Reduced */
             color: #7f8c8d;
-            margin-bottom: 1px; /* Further Reduced */
+            margin-top: 2px;
         }
+        /* --- Estilos Status (Visão Pública) --- */
         .status-container {
             position: absolute;
-            bottom: 6px;
-            right: 6px;
-            width: 20px;
+            bottom: 8px;
+            right: 8px;
+            width: 20px; /* Tamanho do círculo */
             height: 20px;
         }
-        .status-btn { /* Keep style for view, even if not clickable */
+        .status-indicator { /* Renomeado de status-btn */
             width: 100%;
             height: 100%;
             border-radius: 50%;
             border: 2px solid white;
-            /* cursor: pointer; */ /* Remove cursor pointer for view */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            /* transition: transform 0.2s; */ /* Remove hover effect for view */
-            position: absolute;
-            bottom: 0;
-            right: 0;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
         }
-        /* Remove hover effect for view */
-        /* .status-btn:hover {
-            transform: scale(1.1);
-        } */
-        .status-occupied {
-            background-color: #2ecc71;
-        }
-        .status-unoccupied {
-            background-color: #f39c12;
-        }
-        .status-issue {
-            background-color: #e74c3c;
-        }
-        /* Remove styles related to admin-only features */
-        /* .status-options { ... } */
-        /* .status-option { ... } */
-        /* .status-option:hover { ... } */
-        /* .status-preview { ... } */
-        /* .submit-btn { ... } */
-        /* .submit-btn:hover { ... } */
-        /* select.form-control { ... } */
-        /* .alert { ... } */
-        /* .alert-error { ... } */
-        /* .alert-success { ... } */
+        .status-occupied { background-color: #2ecc71; } /* Verde */
+        .status-unoccupied { background-color: #f39c12; } /* Laranja */
+        .status-issue { background-color: #e74c3c; } /* Vermelho */
 
-        /* Keep workstation relative positioning for number/status */
-         .workstation {
-            position: relative;
-            /* overflow: visible; */ /* Not needed without dropdown */
-        }
-    </style>
-    <style> /* Added separate style block for legend CSS */
+        /* --- Estilos Legenda (Mantido) --- */
         .status-legend {
-            position: absolute; /* Changed back to absolute */
-            top: 15px;         /* Position near top of parent */
-            right: 15px;       /* Position near right of parent */
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 100; /* Increased z-index */
-            font-size: 0.85em;
+             position: absolute;
+             top: 20px; /* Ajustado */
+             right: 20px; /* Ajustado */
+             background-color: rgba(255, 255, 255, 0.95); /* Mais opaco */
+             padding: 12px 18px; /* Ajustado */
+             border-radius: 8px;
+             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+             z-index: 50;
+             font-size: 0.9em;
+         }
+         .legend-item {
+             display: flex;
+             align-items: center;
+             margin-bottom: 6px;
+         }
+         .legend-item:last-child {
+             margin-bottom: 0;
+         }
+         .legend-color {
+             width: 16px;
+             height: 16px;
+             border-radius: 50%;
+             margin-right: 8px;
+             border: 1px solid #ccc;
+         }
+
+        /* --- Dark Theme Overrides --- */
+        .dark-theme body { background-color: #121212; color: #e0e0e0; }
+        .dark-theme .office-container { background: #1e1e1e; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .dark-theme h1 { color: #e0e0e0; }
+        .dark-theme .room-section { background-color: #2a2a2a; border-color: #444; }
+        .dark-theme .room-header { color: #5dade2; border-bottom-color: #444; }
+        .dark-theme .island-header { color: #7cc0f0; }
+        .dark-theme .workstation { background: #2d2d2d; border-color: #444; }
+        .dark-theme .employee-name { color: #e0e0e0; }
+        .dark-theme .workstation-number, .dark-theme .detail { color: #999; }
+        .dark-theme .status-indicator { border-color: #2d2d2d; }
+        .dark-theme .status-legend { background-color: rgba(40, 40, 40, 0.95); box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .dark-theme .legend-color { border-color: #555; }
+
+        /* Adicionar ao CSS principal (em ambos os arquivos) */
+        .workstations-columns-container {
+            display: flex; /* Organiza as colunas lado a lado */
+            gap: 15px; /* Espaço entre as colunas */
+            justify-content: center; /* Adicionado para centralizar as colunas */
         }
-        .legend-item {
+        .workstation-column {
             display: flex;
-            align-items: center;
-            margin-bottom: 5px;
+            flex-direction: column; /* Organiza workstations na coluna */
+            gap: 10px; /* Espaço entre workstations na coluna */
+            /* A largura da coluna pode ser definida aqui ou ser implícita pela largura das workstations */
         }
-        .legend-item:last-child {
-            margin-bottom: 0;
+         .workstation {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Centraliza conteúdo verticalmente */
+            align-items: center; /* Centraliza conteúdo horizontalmente */
+            height: 85px; /* Ajustado */
+            width: 180px; /* Ajustado */
+            box-sizing: border-box;
+            position: relative;
+            border: 1px solid #e0e0e0;
+            text-align: center; /* Centraliza texto */
         }
-        .legend-color {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            margin-right: 8px;
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-        .legend-text {
-            color: #333;
-        }
-    </style>
-    <style> /* Dark Theme Overrides */
-        .dark-theme body {
-            background-color: #121212;
-            color: #e0e0e0;
-        }
-        .dark-theme .office-container {
-            background: #1e1e1e;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        }
-        .dark-theme h1 {
-            color: #e0e0e0;
-        }
-        .dark-theme .tabs {
-            border-bottom-color: #444;
-        }
-        .dark-theme .tab {
-            background-color: #333;
-            color: #bbb;
-            border-color: transparent;
-        }
-        .dark-theme .tab:hover {
-            background-color: #444;
-            color: #ddd;
-        }
-        .dark-theme .tab.active {
-            background-color: #1e1e1e; /* Match container background */
-            border-color: #444;
-            border-bottom-color: #1e1e1e; /* Hide bottom border */
-            color: #fff;
-        }
-         .dark-theme .tab-panels-container {
-            border-color: #444;
-        }
-        .dark-theme .workstation {
-            background: #2d2d2d;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.2);
-            border: 1px solid #444; /* Add subtle border */
-        }
-         .dark-theme .workstation:hover {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            border-color: #555;
-        }
-        .dark-theme .employee-name {
-            color: #e0e0e0;
-        }
-        .dark-theme .workstation-number,
-        .dark-theme .detail {
-            color: #999;
-        }
-        .dark-theme .status-btn {
-            border-color: #2d2d2d; /* Match workstation background */
-        }
-        .dark-theme .status-legend {
-            background-color: rgba(45, 45, 45, 0.9); /* Darker background */
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-        .dark-theme .legend-text {
-            color: #e0e0e0; /* Light text */
-        }
-         .dark-theme .legend-color {
-            border-color: rgba(255,255,255,0.1); /* Lighter border for contrast */
-        }
+
     </style>
 </head>
 <body class="dark-theme">
     <div class="office-container">
         <h1>Visão do Escritório</h1>
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('inss')">INSS</div>
-            <div class="tab" onclick="switchTab('siae-leo')">SIAPE LEO</div>
-            <div class="tab" onclick="switchTab('siae-dion')">SIAPE DION</div>
-            <div class="tab" onclick="switchTab('estagio')">Estágio</div>
-        </div>
 
-        <div class="tab-panels-container"> <!-- Added container -->
-            <div class="status-legend">
-                <div class="legend-item">
-                    <span class="legend-color status-occupied"></span>
-                    <span class="legend-text">Ocupada</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color status-unoccupied"></span>
-                    <span class="legend-text">Vaga</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color status-issue"></span>
-                    <span class="legend-text">Manutenção</span>
-                </div>
+        <!-- Legenda de Status -->
+        <div class="status-legend">
+            <div class="legend-item">
+                <div class="legend-color status-occupied"></div> Ocupada
             </div>
-            <div id="inss" class="tab-content active">
-            <div class="columns-container">
-                {% for column in inss_columns %}
-                <div class="column">
-                    {% for workstation in column %}
-                    <div class="workstation">
-                        <div class="workstation-number">{{ workstation.sequence }}</div>
-                        <div class="employee-name">
-                            {% if workstation.employee %}
-                                {{ workstation.employee.name }}
-                                {# Sector label removed #}
-                            {% else %}
-                                Vaga
-                            {% endif %}
-                        </div>
-                        <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
-                        <div class="status-container">
-                            <div class="status-btn
-                                {% if workstation.status == 'OCCUPIED' %}status-occupied
-                                {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
-                                {% else %}status-issue{% endif %}"></div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endfor %}
+            <div class="legend-item">
+                <div class="legend-color status-unoccupied"></div> Vaga
+            </div>
+            <div class="legend-item">
+                <div class="legend-color status-issue"></div> Manutenção
             </div>
         </div>
 
-        <div id="siae-leo" class="tab-content">
-            <div class="columns-container">
-                {% for column in siae_leo_columns %}
-                <div class="column">
-                    {% for workstation in column %}
-                    <div class="workstation">
-                        <div class="workstation-number">{{ workstation.sequence }}</div>
-                        <div class="employee-name">
-                            {% if workstation.employee %}
-                                {{ workstation.employee.name }}
-                                {# Sector label removed #}
-                            {% else %}
-                                Vaga
-                            {% endif %}
+        <!-- Estrutura Principal: Iterar sobre Salas, Ilhas e Workstations -->
+        {% if rooms_data %}
+            {% for room in rooms_data %}
+            <div class="room-section">
+                <h2 class="room-header">{{ room.name }}</h2>
+
+                {% for island in room.islands.all %} {# Acessa as ilhas diretamente #}
+                <div class="island-section">
+                    <h3 class="island-header">Ilha {{ island.island_number }}</h3>
+                    <div class="workstations-columns-container"> {# Novo container #}
+                        {% for column in island.processed_columns %}
+                        <div class="workstation-column"> {# Classe para coluna #}
+                            {% for workstation in column %} {# Iterar sobre workstations na coluna #}
+                            <div class="workstation">
+                                <div class="workstation-number">{{ workstation.display_sequence }}</div>
+                                {% if workstation.status == 'OCCUPIED' and workstation.employee %}
+                                    <div class="employee-name">{{ workstation.employee.name }}</div>
+                                {% elif workstation.status == 'UNOCCUPIED' %}
+                                    <div class="employee-name" style="color: #aaa;"><em>Vaga</em></div>
+                                {% elif workstation.status == 'MAINTENANCE' %}
+                                     <div class="employee-name" style="color: #e74c3c;"><em>Manutenção</em></div>
+                                {% else %}
+                                     <div class="employee-name" style="color: #aaa;"><em>{{ workstation.get_status_display }}</em></div>
+                                {% endif %}
+                                <div class="status-container">
+                                    <div class="status-indicator {% if workstation.status == 'OCCUPIED' %}status-occupied {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied {% else %}status-issue {% endif %}%"></div>
+                                </div>
+                            </div>
+                            {% empty %}
+                                 <p style="visibility: hidden;">Coluna vazia</p>
+                            {% endfor %}
                         </div>
-                        <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
-                        <div class="status-container">
-                            <div class="status-btn
-                                {% if workstation.status == 'OCCUPIED' %}status-occupied
-                                {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
-                                {% else %}status-issue{% endif %}"></div>
-                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
+                     {% if not island.processed_columns %} {# Mensagem se não houver workstations #}
+                         <p>Nenhuma workstation nesta ilha.</p>
+                     {% endif %}
                 </div>
+                {% empty %}
+                    <p>Nenhuma ilha nesta sala.</p>
                 {% endfor %}
             </div>
-        </div>
-        <div id="siae-dion" class="tab-content">
-            <div class="columns-container">
-                {% for column in siae_dion_columns %}
-                <div class="column">
-                    {% for workstation in column %}
-                    <div class="workstation">
-                        <div class="workstation-number">{{ workstation.sequence }}</div>
-                        <div class="employee-name">
-                            {% if workstation.employee %}
-                                {{ workstation.employee.name }}
-                                {# Sector label removed #}
-                            {% else %}
-                                Vaga
-                            {% endif %}
-                        </div>
-                        <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
-                        <div class="status-container">
-                            <div class="status-btn
-                                {% if workstation.status == 'OCCUPIED' %}status-occupied
-                                {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
-                                {% else %}status-issue{% endif %}"></div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        <div id="estagio" class="tab-content">
-            <div class="columns-container">
-                {% for column in estagio_columns %}
-                <div class="column">
-                    {% for workstation in column %}
-                    <div class="workstation">
-                        <div class="workstation-number">{{ workstation.sequence }}</div>
-                        <div class="employee-name">
-                            {% if workstation.employee %}
-                                {{ workstation.employee.name }}
-                                {# Sector label removed #}
-                            {% else %}
-                                Vaga
-                            {% endif %}
-                        </div>
-                        <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
-                        <div class="status-container">
-                            <div class="status-btn
-                                {% if workstation.status == 'OCCUPIED' %}status-occupied
-                                {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
-                                {% else %}status-issue{% endif %}"></div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endfor %}
-            </div>
-        </div> <!-- Closed estagio tab-content -->
+            {% endfor %}
+        {% else %}
+            <p style="text-align: center; margin-top: 30px;">Nenhuma sala cadastrada ainda.</p>
+        {% endif %}
+
     </div>
 
+    {# Script de atualização automática (se existir, pode ser mantido) #}
     <script>
-        function switchTab(tabId) {
-            const animationDuration = 400; // Must match CSS transition duration (reverted)
-            const container = document.querySelector('.tab-panels-container');
-            const currentActiveContent = container.querySelector('.tab-content.active');
-            const targetContent = document.getElementById(tabId);
-            const tabs = Array.from(document.querySelectorAll('.tab')); // Get all tab buttons
-            const clickedTabElement = event.currentTarget; // The clicked tab button
-
-            if (!targetContent || targetContent === currentActiveContent) {
-                return; // Do nothing if target is invalid or already active
-            }
-
-            const currentIndex = tabs.findIndex(tab => tab.classList.contains('active'));
-            const targetIndex = tabs.findIndex(tab => tab === clickedTabElement);
-            const isMovingRight = targetIndex > currentIndex;
-
-            // Update tab button states
-            tabs.forEach(tab => tab.classList.remove('active'));
-            clickedTabElement.classList.add('active');
-
-            // --- Animation Logic ---
-            const animationClasses = ['active', 'prepare-left', 'prepare-right', 'exiting-left', 'exiting-right'];
-
-            // 1. Animate out the current tab content
-            if (currentActiveContent) {
-                const exitClass = isMovingRight ? 'exiting-left' : 'exiting-right';
-                // Clean slate for current content before applying exit animation
-                currentActiveContent.classList.remove(...animationClasses);
-                currentActiveContent.classList.add(exitClass);
-
-                // Clean up *only this specific* exiting class after animation
-                // Use a reference that won't change if another click happens
-                const elementToClean = currentActiveContent;
-                setTimeout(() => {
-                    elementToClean.classList.remove(exitClass);
-                }, animationDuration);
-            }
-
-            // 2. Prepare and animate in the target tab content
-            const prepareClass = isMovingRight ? 'prepare-right' : 'prepare-left';
-            // Clean slate for target content before applying prepare state
-            targetContent.classList.remove(...animationClasses);
-            targetContent.classList.add(prepareClass);
-
-            // Force reflow/repaint before adding 'active' to trigger transition
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => { // Double RAF for more robustness in some browsers
-                    targetContent.classList.remove(prepareClass);
-                    targetContent.classList.add('active');
-                });
-            });
-        }
-
-        // Auto-refresh a cada 30 segundos
-        setTimeout(function(){
-            window.location.reload();
-        }, 30000);
+        // Se houver script para refresh automático, mantenha-o aqui.
+        // Exemplo:
+        // setTimeout(() => {
+        //     window.location.reload();
+        // }, 30000); // Recarrega a cada 30 segundos
     </script>
 
 </body>

@@ -17,288 +17,338 @@
              color: #e0e0e0;
         }
         .office-container {
-            max-width: 1000px; /* Reduced from 1200px */
-            margin: 0 auto;
+            max-width: 1200px; /* Aumentado para mais espaço */
+            margin: 20px auto; /* Adicionado margin top/bottom */
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 12px;
+            padding: 20px; /* Aumentado padding */
         }
         h1 {
             color: #2c3e50;
             text-align: center;
-            margin-bottom: 20px; /* Reduced */
+            margin-bottom: 25px;
         }
-        .tabs {
+        .room-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff; /* Fundo branco para destacar a seção */
+        }
+        .room-header {
+            font-size: 1.6em;
+            color: #3498db;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+         .island-section {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+        }
+        .island-header {
+             font-size: 1.2em;
+             color: #5dade2;
+             margin-bottom: 10px;
+        }
+        .workstations-columns-container {
             display: flex;
-            margin-bottom: 15px; /* Reduced */
-            border-bottom: 1px solid #ddd;
+            gap: 15px;
+            justify-content: center;
         }
-        .tab {
-            padding: 8px 15px; /* Reduced */
-            cursor: pointer;
-            border: 1px solid transparent;
-            border-bottom: none;
-            border-radius: 4px 4px 0 0;
-            margin-right: 5px;
-            background-color: #f1f1f1;
-            transition: all 0.3s;
-        }
-        .tab:hover {
-            background-color: #ddd;
-        }
-        .tab.active {
-            background-color: white;
-            border-color: #ddd;
-            border-bottom-color: white;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-        .tab-panels-container {
-           position: relative;
-           min-height: 600px; /* Ensure minimum height, adjust as needed */
-           margin-top: -1px;
-           overflow: hidden; /* Restore for clipping sliding panels */
-           /* isolation: isolate; */ /* Removed to test if it affects dropdown clipping */
-           display: flex; /* Keep flexbox for potential future use or alignment */
-           align-items: stretch; /* Stretch children (tab-content) */
-           justify-content: flex-start; /* Align children to start */
-           border: 1px solid #ddd;
-           border-top: none;
-        }
-        .tab-content {
-           position: absolute; /* Needed for animation */
-           width: 100%;
-           height: 100%;
-           top: 0;
-           left: 0;
-           transition: transform 0.4s ease-in-out; /* Revert duration and timing */
-           /* transform: translateX(100%); */ /* Removed: Initial position set by JS */
-           opacity: 0; /* Make non-active tabs invisible instantly */
-           display: flex; /* Make tab content a flex container */
-           justify-content: center; /* Center its child horizontally */
-           align-items: center; /* Center child vertically */
-           /* padding-top: 15px; */ /* Removed for true vertical centering */
-           box-sizing: border-box;
-           overflow-y: auto; /* Allow vertical scroll if content overflows */
-        }
-        .tab-content.active {
-           /* display: block; */ /* Remove, handled by opacity/transform */
-           transform: translateX(0); /* Restore active position */
-           opacity: 1; /* Make active tab visible instantly */
-           z-index: 1; /* Restore active stacking */
-        }
-        /* New classes for bidirectional animation */
-        .tab-content.prepare-left {
-            transform: translateX(-100%);
-            transition: none; /* Apply initial position instantly */
-        }
-        .tab-content.prepare-right {
-            transform: translateX(100%);
-            transition: none; /* Apply initial position instantly */
-        }
-        .tab-content.exiting-left {
-            transform: translateX(-100%);
-            opacity: 1; /* Keep visible during exit */
-            z-index: 0;
-        }
-        .tab-content.exiting-right {
-            transform: translateX(100%);
-            opacity: 1; /* Keep visible during exit */
-            z-index: 0;
-        }
-
-        .columns-container {
-            display: flex;
-            gap: 10px; /* Reduced */
-        }
-        .columns-container {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center; /* Center columns horizontally */
-            padding: 15px; /* Add padding around the columns */
-            padding-top: 40px; /* Added top padding for dropdown space */
-            width: 100%; /* Take full width of parent */
-            box-sizing: border-box;
-        }
-        .column {
-            width: 170px; /* Increased width further */
+        .workstation-column {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 10px;
         }
         .workstation {
             background: white;
-            border-radius: 5px;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.05);
-            padding: 6px;
+            border-radius: 6px; /* Suavizado */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 10px; /* Aumentado padding */
             display: flex;
             flex-direction: column;
-            height: 80px; /* Increased height */
-            width: 100%;
+            height: 100px; /* Aumentado height */
+            width: 200px; /* Largura fixa para workstation */
             box-sizing: border-box;
             position: relative;
             transition: transform 0.2s, box-shadow 0.2s;
             min-width: 0;
+            border: 1px solid #e0e0e0; /* Borda sutil */
         }
         .workstation:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12);
         }
-        .workstation-number {
+        .workstation-number { /* ID da Workstation */
             position: absolute;
-            top: 5px;
-            right: 10px;
-            color: #7f8c8d;
-            font-size: 0.8em;
-        }
-        .employee-name {
-            font-weight: 600;
+            top: 8px;
+            right: 12px;
+            color: #95a5a6; /* Cor mais suave */
             font-size: 0.85em;
-            margin-bottom: 2px;
+            font-weight: 600;
+        }
+         .employee-name {
+            font-weight: 600;
+            font-size: 0.9em; /* Ajustado */
+            margin-bottom: 4px; /* Aumentado */
             color: #2c3e50;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .sector {
+        .detail { /* Para mostrar Sequencia e Categoria se houver */
             font-size: 0.8em;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background-color: #e3f2fd;
-            color: #1976d2;
-            display: inline-block;
-            margin-bottom: 3px; /* Reduced */
-        }
-        .sector-mismatch {
-            background-color: #ffebee;
-            color: #d32f2f;
-        }
-        .sector-select { /* This class might not exist anymore, but reducing just in case */
-            width: 100%;
-            padding: 4px; /* Reduced */
-            border-radius: 3px; /* Reduced */
-            border: 1px solid #ddd;
-            margin-bottom: 3px; /* Reduced */
-            font-size: 0.85em; /* Reduced */
-        }
-        .detail {
-            font-size: 0.8em; /* Further Reduced */
             color: #7f8c8d;
-            margin-bottom: 1px; /* Further Reduced */
+            margin-bottom: 3px;
         }
-        .status-container {
-            position: absolute;
-            bottom: 6px;
-            right: 6px;
-            width: 20px;
-            height: 20px;
+        select.form-control { /* Formulários dentro da workstation */
+            width: 100%;
+            padding: 5px; /* Ajustado */
+            border-radius: 4px;
+            border: 1px solid #ccc; /* Levemente mais escuro */
+            font-size: 0.85em; /* Reduzido */
+            margin-top: 5px; /* Espaço acima */
         }
-        .status-btn {
+        .status-container { position: absolute; bottom: 8px; right: 8px; width: 22px; height: 22px; }
+        .status-btn { width: 100%; height: 100%; border-radius: 50%; border: 2px solid white; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s; position: absolute; bottom: 0; right: 0; }
+        .status-btn:hover { transform: scale(1.1); }
+        .status-occupied { background-color: #2ecc71; }
+        .status-unoccupied { background-color: #f39c12; }
+        .status-issue { background-color: #e74c3c; }
+        .status-options { position: absolute; bottom: calc(100% + 5px); right: 0; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); padding: 8px; z-index: 100; display: none; width: 160px; pointer-events: auto; }
+        .status-option { display: flex; align-items: center; padding: 6px 8px; margin: 2px 0; cursor: pointer; border-radius: 4px; transition: background-color 0.2s; font-size: 0.85em; }
+        .status-option:hover { background-color: #f5f5f5; }
+        .status-preview { width: 15px; height: 15px; border-radius: 50%; margin-right: 10px; border: 1px solid #ddd; }
+        .submit-btn { /* Botão Salvar Alterações */
+            background: #4CAF50; color: white; border: none; padding: 12px 25px; /* Aumentado */
+            border-radius: 5px; cursor: pointer; margin-top: 20px; font-size: 1.05em; /* Aumentado */
+            transition: background-color 0.2s; display: block; margin-left: auto; margin-right: auto; /* Centralizado */
+        }
+        .submit-btn:hover { background: #3e8e41; }
+         .alert { padding: 12px; margin-bottom: 15px; border-radius: 4px; border: 1px solid transparent; font-size: 0.95em; }
+        .alert-error { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .alert-success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .admin-actions { text-align: center; margin-bottom: 25px; margin-top: 10px; }
+        .admin-action-btn { display: inline-block; background: #5dade2; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 1em; text-decoration: none; margin: 0 10px; transition: background-color 0.2s; }
+        .admin-action-btn:hover { background: #3498db; }
+        
+        /* --- Estilos do Modal --- */
+        .modal {
+            display: none; /* Oculto por padrão */
+            position: fixed; /* Fica fixo na tela */
+            z-index: 1000; /* Fica sobre todo o conteúdo */
+            left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            border: 2px solid white;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
-            position: absolute;
-            bottom: 0;
-            right: 0;
+            overflow: auto; /* Permite scroll se o conteúdo for grande */
+            background-color: rgba(0,0,0,0.6); /* Fundo escurecido */
+            padding-top: 60px; /* Espaço do topo */
         }
-        .status-btn:hover {
-            transform: scale(1.1);
-        }
-        .status-occupied {
-            background-color: #2ecc71;
-        }
-        .status-unoccupied {
-            background-color: #f39c12;
-        }
-        .status-issue {
-            background-color: #e74c3c;
-        }
-        .status-options {
-            position: absolute;
-            bottom: calc(100% + 5px);
-            right: 0;
-            background: white;
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; /* 5% do topo e centralizado */
+            padding: 25px;
+            border: 1px solid #888;
+            width: 80%; /* Largura do modal */
+            max-width: 600px; /* Largura máxima */
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            padding: 8px;
-            z-index: 100;
-            display: none;
-            width: 160px;
-            pointer-events: auto;
-        }
-        .tabs {
             position: relative;
-            z-index: 10; /* Below dropdown but above panels */
         }
-        .workstation {
-            position: relative; /* Ensure dropdown is positioned relative to card */
-            overflow: visible; /* Allow dropdown to extend beyond card */
+        .close-btn {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
         }
-        .status-option {
-            display: flex;
-            align-items: center;
-            padding: 6px 8px;
-            margin: 2px 0;
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+            text-decoration: none;
             cursor: pointer;
+        }
+        .modal h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .modal .form-group { /* Estilo específico para form dentro do modal */
+            margin-bottom: 15px;
+        }
+        .modal label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .modal input[type="text"],
+        .modal input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
             border-radius: 4px;
-            transition: background-color 0.2s;
-            font-size: 0.85em;
+            box-sizing: border-box;
         }
-        .status-option:hover {
-            background-color: #f5f5f5;
+        .modal .modal-submit-btn { /* Botão específico do modal */
+             display: block;
+             width: auto;
+             margin-left: auto;
+             margin-right: auto; /* Centralizar */
+             padding: 10px 25px;
         }
-        .status-preview {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 1px solid #ddd;
+        .modal-error {
+            color: #d9534f; /* Vermelho para erros */
+            font-size: 0.9em;
+            margin-top: 5px;
+            min-height: 1em; /* Garante espaço mesmo sem erro */
         }
-        .submit-btn {
-            background: #4CAF50;
+        /* --- Dark theme para Modal --- */
+        .dark-theme .modal-content {
+            background-color: #2d2d2d;
+            border-color: #555;
+        }
+        .dark-theme .close-btn {
+            color: #888;
+        }
+        .dark-theme .close-btn:hover,
+        .dark-theme .close-btn:focus {
+            color: #ccc;
+        }
+        .dark-theme .modal h2 {
+            color: #e0e0e0;
+        }
+        .dark-theme .modal label {
+             color: #bbb;
+        }
+        .dark-theme .modal input[type="text"],
+        .dark-theme .modal input[type="number"] {
+            background-color: #333;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+        .dark-theme .modal-error {
+            color: #f8d7da; /* Cor de erro mais clara para tema escuro */
+        }
+        
+        /* Estilos específicos para lista de remoção (se necessário) */
+        #remove-room-list-container ul {
+            list-style: none;
+            padding: 0;
+            max-height: 300px; /* Limita altura e adiciona scroll */
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        #remove-room-list-container li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        #remove-room-list-container li:last-child {
+            border-bottom: none;
+        }
+        #remove-room-list-container .remove-room-btn {
+            background-color: #d9534f;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 5px 10px;
             border-radius: 4px;
             cursor: pointer;
-            margin-top: 15px; /* Reduced */
-            font-size: 1em;
+            font-size: 0.9em;
             transition: background-color 0.2s;
         }
-        .submit-btn:hover {
-            background: #3e8e41;
+        #remove-room-list-container .remove-room-btn:hover {
+             background-color: #c9302c;
         }
-        select.form-control {
+        /* Dark theme para lista */
+        .dark-theme #remove-room-list-container li {
+             border-bottom-color: #444;
+        }
+        .dark-theme #remove-room-list-container .remove-room-btn {
+            /* Estilos dark theme para o botão se necessário */
+        }
+        
+        /* --- Estilos do Slider de Ilhas (Ajustados para Botões Laterais) --- */
+        
+        /* Novo container que alinha botões e slider */
+        .slider-area {
+            position: relative; /* Necessário para posicionar botões filhos absolutamente */
+            padding: 0 50px; /* Adiciona espaço nas laterais para os botões (ajuste conforme necessário) */
+            margin-top: 15px;
+            /* display: flex; */ /* Não mais necessário aqui */
+            /* align-items: center; */ /* Removido */
+        }
+        
+        /* Container do slider (viewport) */
+        .island-slider-container {
+            /* flex-grow: 1; */ /* Removido */
+            /* margin-top: 0; */ /* Removido */
+            /* Outros estilos mantidos: position, overflow, width, min-height */
+            position: relative;
+            overflow: hidden;
             width: 100%;
-            padding: 3px; /* Further Reduced */
-            border-radius: 3px; /* Further Reduced */
-            border: 1px solid #ddd;
-            font-size: 0.9em; /* Added to shrink select */
+            min-height: 300px;
         }
-        .alert { /* Base alert styling */
-            padding: 10px;
-            margin-bottom: 10px;
+        
+        /* Wrapper interno que se move (inalterado) */
+        .island-slider-wrapper {
+            display: flex;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+            transform: translateX(0%);
+        }
+        
+        /* Slide individual (inalterado) */
+        .island-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        
+        /* Estilos ajustados para os botões laterais */
+        .slider-btn.side-btn {
+            position: absolute; /* Posicionamento absoluto */
+            top: 50%; /* Começa no meio vertical do .slider-area */
+            transform: translateY(-50%); /* Ajusta para centralizar o próprio botão */
+            z-index: 10; /* Garante que fique acima do conteúdo */
+            /* Estilos visuais mantidos */
+            background-color: #5dade2;
+            color: white;
+            border: none;
+            padding: 15px 10px;
             border-radius: 4px;
-            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 1.2em;
+            line-height: 1;
+            transition: background-color 0.2s;
+            /* flex-shrink: 0; */ /* Não necessário com position: absolute */
         }
-        .alert-error { /* Error specific styling */
-            background-color: #f8d7da;
-            color: #721c24;
-            border-color: #f5c6cb;
+        .slider-btn.side-btn.prev {
+            left: 10px; /* Posição a partir da esquerda (dentro do padding) */
         }
-        .alert-success { /* Success specific styling */
-            background-color: #d4edda;
-            color: #155724;
-            border-color: #c3e6cb;
+        .slider-btn.side-btn.next {
+            right: 10px; /* Posição a partir da direita (dentro do padding) */
         }
-
-        /* Estagio specific CSS overrides removed */
+        .slider-btn.side-btn:hover {
+            background-color: #3498db;
+        }
+        
+        /* Dark Theme para botões laterais (mantido) */
+        .dark-theme .slider-btn.side-btn {
+             background-color: #2980b9;
+             color: #e0e0e0;
+        }
+        .dark-theme .slider-btn.side-btn:hover {
+             background-color: #1f618d;
+        }
+        
+        /* Regras .slider-nav podem ser removidas completamente */
     </style>
     <style> /* Dark Theme Overrides */
         .dark-theme body {
@@ -312,90 +362,41 @@
         .dark-theme h1 {
             color: #e0e0e0;
         }
-        .dark-theme .tabs {
-            border-bottom-color: #444;
-        }
-        .dark-theme .tab {
-            background-color: #333;
-            color: #bbb;
-            border-color: transparent;
-        }
-        .dark-theme .tab:hover {
-            background-color: #444;
-            color: #ddd;
-        }
-        .dark-theme .tab.active {
-            background-color: #1e1e1e; /* Match container background */
-            border-color: #444;
-            border-bottom-color: #1e1e1e; /* Hide bottom border */
-            color: #fff;
-        }
-         .dark-theme .tab-panels-container {
-            border-color: #444;
-        }
-        .dark-theme .workstation {
-            background: #2d2d2d;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.2);
-            border: 1px solid #444; /* Add subtle border */
-        }
-         .dark-theme .workstation:hover {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            border-color: #555;
-        }
-        .dark-theme .employee-name {
-            color: #e0e0e0;
-        }
-        .dark-theme .workstation-number,
-        .dark-theme .detail {
-            color: #999;
-        }
-        .dark-theme .status-btn {
-            border-color: #2d2d2d; /* Match workstation background */
-        }
-        /* Admin specific dark theme styles */
-        .dark-theme select.form-control {
-            background-color: #333;
-            color: #e0e0e0;
-            border-color: #555;
-        }
-        .dark-theme select.form-control option {
-             background-color: #333;
-             color: #e0e0e0;
-        }
-        .dark-theme .status-options {
-            background: #333;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            border: 1px solid #555;
-        }
-        .dark-theme .status-option {
-            color: #e0e0e0;
-        }
-        .dark-theme .status-option:hover {
-            background-color: #444;
-        }
-        .dark-theme .submit-btn {
-            background: #00695c; /* Darker green */
-            color: #e0e0e0;
-        }
-        .dark-theme .submit-btn:hover {
-            background: #004d40; /* Even darker green */
-        }
-        .dark-theme .alert {
-             border-color: transparent;
-        }
-        .dark-theme .alert-error {
-            background-color: #5c1a1a; /* Dark red background */
-            color: #f8d7da;
-        }
-        .dark-theme .alert-success {
-            background-color: #144a2f; /* Dark green background */
-            color: #d4edda;
+        .dark-theme .room-section { background-color: #2a2a2a; border-color: #444; }
+        .dark-theme .room-header { color: #5dade2; border-bottom-color: #444; }
+        .dark-theme .island-header { color: #7cc0f0; }
+        .dark-theme .workstation { background: #2d2d2d; box-shadow: 0 1px 6px rgba(0,0,0,0.2); border-color: #444; }
+        .dark-theme .workstation:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.3); border-color: #555; }
+        .dark-theme .employee-name { color: #e0e0e0; }
+        .dark-theme .workstation-number, .dark-theme .detail { color: #999; }
+        .dark-theme select.form-control { background-color: #333; color: #e0e0e0; border-color: #555; }
+        .dark-theme select.form-control option { background-color: #333; color: #e0e0e0; }
+        .dark-theme .status-btn { border-color: #2d2d2d; }
+        .dark-theme .status-options { background: #333; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid #555; }
+        .dark-theme .status-option { color: #e0e0e0; }
+        .dark-theme .status-option:hover { background-color: #444; }
+        .dark-theme .submit-btn { background: #00695c; color: #e0e0e0; }
+        .dark-theme .submit-btn:hover { background: #004d40; }
+        .dark-theme .alert { border-color: transparent; }
+        .dark-theme .alert-error { background-color: #5c1a1a; color: #f8d7da; }
+        .dark-theme .alert-success { background-color: #144a2f; color: #d4edda; }
+        .dark-theme .admin-action-btn { background-color: #2980b9; color: #e0e0e0; }
+        .dark-theme .admin-action-btn:hover { background-color: #1f618d; }
+        .dark-theme .remove-room-btn {
+            /* Estilos dark theme para o botão se necessário */
         }
     </style>
 </head>
 <body class="dark-theme">
     <div class="office-container">
         <h1>Admin - Visão do Escritório</h1>
+        
+        <!-- Botões de Ação Admin -->
+        <div class="admin-actions">
+            <button type="button" class="admin-action-btn" onclick="openModal('addRoomModal')">Adicionar Sala</button>
+            <button type="button" class="admin-action-btn" onclick="openModal('removeRoomModal')">Remover Sala</button>
+        </div>
+        
         {% if messages %}
         <div style="margin-bottom: 20px;">
             {% for message in messages %}
@@ -409,258 +410,74 @@
             {% csrf_token %}
             <input type="hidden" name="modified_pa" value="" id="global-modified-pa">
             
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab('inss')">INSS</div>
-                <div class="tab" onclick="switchTab('siae-leo')">SIAPE LEO</div>
-                <div class="tab" onclick="switchTab('siae-dion')">SIAPE DION</div>
-                <div class="tab" onclick="switchTab('estagio')">Estágio</div>
-            </div>
-    
-            <div class="tab-panels-container"> <!-- Added container -->
-                <div id="inss" class="tab-content active">
-                <div class="columns-container">
-                    {% for column in inss_columns %}
-                    <div class="column">
-                        {% for workstation, form in column %}
-                        <div class="workstation">
-                            <div class="workstation-number">{{ workstation.sequence }}</div>
-                            <div class="employee-name">
-                               {{ form.employee }}
-                               {# Sector label removed #}
-                                <!-- Sector is set automatically based on workstation category -->
-                                <input type="hidden" name="{{ form.prefix }}-status"
-                                       value="{{ workstation.status }}" class="status-input">
-                            </div>
-                            <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
-                            <div class="status-container">
-                                <div class="status-btn
-                                    {% if workstation.status == 'OCCUPIED' %}status-occupied
-                                    {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
-                                    {% else %}status-issue{% endif %}"
-                                    onclick="toggleStatusOptions(this)"></div>
-                                <div class="status-options">
-                                    <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')">
-                                        <div class="status-preview status-occupied"></div>
-                                        <span>Ocupada</span>
+            <!-- Estrutura Principal: Iterar sobre Salas, Ilhas e Workstations -->
+            {% if rooms_data %}
+                {% for room in rooms_data %}
+                <div class="room-section" data-room-id="{{ room.id }}">
+                    <h2 class="room-header">{{ room.name }}</h2>
+                
+                    <div class="slider-area"> {# NOVO WRAPPER #}
+                
+                        <button type="button" class="slider-btn side-btn prev" onclick="navigateIsland('{{ room.id }}', -1)" style="display: none;">&lt;</button> {# MOVIDO E COM NOVA CLASSE #}
+                
+                        <div class="island-slider-container"> {# Container do slider continua aqui #}
+                            <div class="island-slider-wrapper">
+                                {% for island in room.islands_prefetched %}
+                                <div class="island-section island-slide" data-index="{{ forloop.counter0 }}">
+                                    <h3 class="island-header">Ilha {{ island.island_number }}</h3>
+                                    <div class="workstations-columns-container">
+                                        {% for column in island.processed_columns %}
+                                            <div class="workstation-column">
+                                                {% for item in column %}
+                                                    {% with workstation=item.workstation form=item.form %}
+                                                        <div class="workstation">
+                                                            <div class="workstation-number">{{ workstation.display_sequence }}</div>
+                                                            <div class="employee-name">{{ form.employee }}</div>
+                                                            {% if workstation.category %}<div class="detail">Cat: {{ workstation.category }}</div>{% endif %}
+                                                            <input type="hidden" name="{{ form.prefix }}-status" value="{{ workstation.status }}" class="status-input">
+                                                            <div class="status-container">
+                                                                <div class="status-btn {% if workstation.status == 'OCCUPIED' %}status-occupied {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied {% else %}status-issue {% endif %}" onclick="toggleStatusOptions(this)"></div>
+                                                                <div class="status-options">
+                                                                    <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')"><div class="status-preview status-occupied"></div><span>Ocupada</span></div>
+                                                                    <div class="status-option" onclick="selectStatus(this, 'UNOCCUPIED', 'status-unoccupied', '{{ workstation.id }}')"><div class="status-preview status-unoccupied"></div><span>Vaga</span></div>
+                                                                    <div class="status-option" onclick="selectStatus(this, 'MAINTENANCE', 'status-issue', '{{ workstation.id }}')"><div class="status-preview status-issue"></div><span>Manutenção</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endwith %}
+                                                {% empty %}
+                                                    <p style="visibility: hidden;">Coluna vazia</p>
+                                                {% endfor %}
+                                            </div>
+                                        {% endfor %}
                                     </div>
-                                    <div class="status-option" onclick="selectStatus(this, 'UNOCCUPIED', 'status-unoccupied', '{{ workstation.id }}')">
-                                        <div class="status-preview status-unoccupied"></div>
-                                        <span>Vaga</span>
-                                    </div>
-                                    <div class="status-option" onclick="selectStatus(this, 'MAINTENANCE', 'status-issue', '{{ workstation.id }}')">
-                                        <div class="status-preview status-issue"></div>
-                                        <span>Manutenção</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+                                    {% if not island.processed_columns %}
+                                        <p>Nenhuma workstation nesta ilha.</p>
+                                    {% endif %}
+                                </div> {# Fim island-section #}
+                                {% empty %}
+                                    <div class="island-section island-slide"><p>Nenhuma ilha nesta sala.</p></div> {# Placeholder se não houver ilhas #}
+                                {% endfor %}
+                            </div> {# Fim island-slider-wrapper #}
+                        </div> {# Fim island-slider-container #}
+                
+                        <button type="button" class="slider-btn side-btn next" onclick="navigateIsland('{{ room.id }}', 1)" {% if room.islands_prefetched|length <= 1 %}style="display: none;"{% endif %}>&gt;</button> {# MOVIDO E COM NOVA CLASSE #}
+                
+                    </div> {# Fim slider-area #}
+                </div> {# Fim room-section #}
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; margin-top: 30px;">Nenhuma sala cadastrada ainda.</p>
+            {% endif %}
 
-            <div id="siae-leo" class="tab-content">
-                <div class="columns-container">
-                    {% for column in siae_leo_columns %}
-                    <div class="column">
-                        {% for workstation, form in column %}
-                        <div class="workstation">
-                            <div class="workstation-number">{{ workstation.sequence }}</div>
-                            <div class="employee-name">
-                               {{ form.employee }}
-                               {# Sector label removed #}
-                                <!-- Sector is set automatically based on workstation category -->
-                                <input type="hidden" name="{{ form.prefix }}-status"
-                                       value="{{ workstation.status }}" class="status-input">
-                            </div>
-                            <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
-                            <div class="status-container">
-                                <div class="status-btn
-                                    {% if workstation.status == 'OCCUPIED' %}status-occupied
-                                    {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
-                                    {% else %}status-issue{% endif %}"
-                                    onclick="toggleStatusOptions(this)"></div>
-                                <div class="status-options">
-                                    <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')">
-                                        <div class="status-preview status-occupied"></div>
-                                        <span>Ocupada</span>
-                                    </div>
-                                    <div class="status-option" onclick="selectStatus(this, 'UNOCCUPIED', 'status-unoccupied', '{{ workstation.id }}')">
-                                        <div class="status-preview status-unoccupied"></div>
-                                        <span>Vaga</span>
-                                    </div>
-                                    <div class="status-option" onclick="selectStatus(this, 'MAINTENANCE', 'status-issue', '{{ workstation.id }}')">
-                                        <div class="status-preview status-issue"></div>
-                                        <span>Manutenção</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div id="siae-dion" class="tab-content">
-                <div class="columns-container">
-                    {% for column in siae_dion_columns %}
-                    <div class="column">
-                        {% for workstation, form in column %}
-                        <div class="workstation">
-                            <div class="workstation-number">{{ workstation.sequence }}</div>
-                            <div class="employee-name">
-                               {{ form.employee }}
-                               {# Sector label removed #}
-                                <!-- Sector is set automatically based on workstation category -->
-                                <input type="hidden" name="{{ form.prefix }}-status"
-                                       value="{{ workstation.status }}" class="status-input">
-                            </div>
-                            <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div>
-                            <div class="status-container">
-                                <div class="status-btn
-                                    {% if workstation.status == 'OCCUPIED' %}status-occupied
-                                    {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
-                                    {% else %}status-issue{% endif %}"
-                                    onclick="toggleStatusOptions(this)"></div>
-                                <div class="status-options">
-                                    <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')">
-                                        <div class="status-preview status-occupied"></div>
-                                        <span>Ocupada</span>
-                                    </div>
-                                    <div class="status-option" onclick="selectStatus(this, 'UNOCCUPIED', 'status-unoccupied', '{{ workstation.id }}')">
-                                        <div class="status-preview status-unoccupied"></div>
-                                        <span>Vaga</span>
-                                    </div>
-                                    <div class="status-option" onclick="selectStatus(this, 'MAINTENANCE', 'status-issue', '{{ workstation.id }}')">
-                                        <div class="status-preview status-issue"></div>
-                                        <span>Manutenção</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div id="estagio" class="tab-content">
-                <div class="columns-container">
-                    {% for column in estagio_columns %} {# Changed variable #}
-                    <div class="column">
-                        {% for workstation, form in column %}
-                        <div class="workstation">
-                            <div class="workstation-number">{{ workstation.sequence }}</div>
-                            <!-- Temporarily commented out complex content -->
-                            <div class="employee-name">
-                               {{ form.employee }}
-                               {# Sector label removed #}
-                            </div>
-                             <input type="hidden" name="{{ form.prefix }}-status"
-                                       value="{{ workstation.status }}" class="status-input"> <!-- RESTORED -->
-                             <div class="detail">Estação: {{ workstation.category }}-{{ workstation.sequence }}</div> <!-- RESTORED -->
-                            <!-- Still commented out: employee name/form/sector -->
-                            <!--
-                            <div class="employee-name">
-                               {{ form.employee }}
-                               {% if workstation.employee %}
-                                   <span class="sector" style="margin-left: 5px;">{{ workstation.employee.get_sector_display }}</span>
-                               {% endif %}
-                            </div>
-                             -->
-                            <div class="status-container"> <!-- RESTORED -->
-                                <div class="status-btn
-                                    {% if workstation.status == 'OCCUPIED' %}status-occupied
-                                    {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied
-                                    {% else %}status-issue{% endif %}"
-                                    onclick="toggleStatusOptions(this)"></div> <!-- RESTORED onclick -->
-                                <div class="status-options"> <!-- RESTORED options div -->
-                                    <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')">
-                                        <div class="status-preview status-occupied"></div>
-                                        <span>Ocupada</span>
-                                    </div>
-                                    <div class="status-option" onclick="selectStatus(this, 'UNOCCUPIED', 'status-unoccupied', '{{ workstation.id }}')">
-                                        <div class="status-preview status-unoccupied"></div>
-                                        <span>Vaga</span>
-                                    </div>
-                                    <div class="status-option" onclick="selectStatus(this, 'MAINTENANCE', 'status-issue', '{{ workstation.id }}')">
-                                        <div class="status-preview status-issue"></div>
-                                        <span>Manutenção</span>
-                                    </div>
-                                </div> <!-- RESTORED options div -->
-                            </div> <!-- RESTORED -->
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Move submit button outside tab-panels-container -->
-            </div> <!-- Close tab-panels-container -->
-            <div style="text-align: center; margin-top: 20px;">
+            <!-- Botão Salvar Alterações (Fora do loop) -->
+            <div style="text-align: center; margin-top: 30px;">
                 <button type="submit" class="submit-btn">Salvar Alterações</button>
             </div>
         </form>
     </div>
 
     <script>
-        function switchTab(tabId) {
-            const animationDuration = 400; // Must match CSS transition duration (reverted)
-            const container = document.querySelector('.tab-panels-container');
-            const currentActiveContent = container.querySelector('.tab-content.active');
-            const targetContent = document.getElementById(tabId);
-            const tabs = Array.from(document.querySelectorAll('.tab')); // Get all tab buttons
-            // Find the clicked tab element more reliably
-            const clickedTabElement = tabs.find(tab => tab.getAttribute('onclick') === `switchTab('${tabId}')`);
-
-            if (!targetContent || targetContent === currentActiveContent || !clickedTabElement) {
-                return; // Do nothing if target is invalid, already active, or clicked tab not found
-            }
-
-            const currentIndex = tabs.findIndex(tab => tab.classList.contains('active'));
-            const targetIndex = tabs.findIndex(tab => tab === clickedTabElement);
-            const isMovingRight = targetIndex > currentIndex;
-
-            // Update tab button states
-            tabs.forEach(tab => tab.classList.remove('active'));
-            clickedTabElement.classList.add('active');
-
-            // --- Animation Logic ---
-            const animationClasses = ['active', 'prepare-left', 'prepare-right', 'exiting-left', 'exiting-right'];
-
-            // 1. Animate out the current tab content
-            if (currentActiveContent) {
-                const exitClass = isMovingRight ? 'exiting-left' : 'exiting-right';
-                // Clean slate for current content before applying exit animation
-                currentActiveContent.classList.remove(...animationClasses);
-                currentActiveContent.classList.add(exitClass);
-
-                // Clean up *only this specific* exiting class after animation
-                // Use a reference that won't change if another click happens
-                const elementToClean = currentActiveContent;
-                setTimeout(() => {
-                    elementToClean.classList.remove(exitClass);
-                }, animationDuration);
-            }
-
-            // 2. Prepare and animate in the target tab content
-            const prepareClass = isMovingRight ? 'prepare-right' : 'prepare-left';
-            // Clean slate for target content before applying prepare state
-            targetContent.classList.remove(...animationClasses);
-            targetContent.classList.add(prepareClass);
-
-            // Force reflow/repaint before adding 'active' to trigger transition
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => { // Double RAF for more robustness in some browsers
-                    targetContent.classList.remove(prepareClass);
-                    targetContent.classList.add('active');
-                });
-            });
-        }
-
         function handleModification(paId, field = null) {
             document.getElementById('global-modified-pa').value = paId;
             if (field) {
@@ -673,23 +490,11 @@
 
         function toggleStatusOptions(btn) {
             const options = btn.nextElementSibling;
-            // Ensure the options element exists before proceeding
-            if (!options) {
-                console.error("Status options element not found next to button:", btn);
-                return;
-            }
-
+            if (!options) { return; }
             const currentlyOpen = options.style.display === 'block';
-
-            // Close all other menus first
             document.querySelectorAll('.status-options').forEach(el => {
-                // Check if the element is not the one we are trying to toggle
-                if (el !== options) {
-                   el.style.display = 'none';
-                }
+                if (el !== options) { el.style.display = 'none'; }
             });
-
-            // Toggle the current menu's display
             options.style.display = currentlyOpen ? 'none' : 'block';
         }
 
@@ -699,28 +504,13 @@
             const statusInput = workstation.querySelector('.status-input');
             const formPrefix = statusInput.name.split('-')[0];
             
-            // Atualiza visual
             statusBtn.className = 'status-btn ' + statusClass;
-            
-            // Atualiza ambos os campos de status
             statusInput.value = statusValue;
-            handleModification(paId, 'status'); // Add this line to signal modification
-
-            // Fecha o menu
-            option.closest('.status-options').style.display = 'none'; // Add this line to close dropdown
             handleModification(paId, 'status');
-            
-            // Atualiza o campo do formulário Django
-            const djangoStatusField = document.querySelector(`[name="${formPrefix}-status"]`);
-            if (djangoStatusField) {
-                djangoStatusField.value = statusValue;
-            }
-            
-            // Fecha o menu
+
             option.closest('.status-options').style.display = 'none';
         }
 
-        // Adiciona listener para mudanças no employee
         document.querySelectorAll('select[name$="-employee"]').forEach(select => {
             select.addEventListener('change', function() {
                 const paId = this.name.split('-')[0];
@@ -728,15 +518,6 @@
             });
         });
 
-        // Adiciona listener para mudanças no sector
-        document.querySelectorAll('select[name$="-sector"]').forEach(select => {
-            select.addEventListener('change', function() {
-                const paId = this.name.split('-')[0];
-                handleModification(paId, 'sector');
-            });
-        });
-
-        // Fecha menus ao clicar fora
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.status-container')) {
                 document.querySelectorAll('.status-options').forEach(el => {
@@ -744,6 +525,316 @@
                 });
             }
         });
+
+        // --- Funções de Controle do Modal ---
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+        
+            // Limpeza específica para cada modal
+            if (modalId === 'addRoomModal') {
+                clearModalErrors(); // Função já existente
+                document.getElementById('modal_room_name').value = '';
+                document.getElementById('modal_num_islands').value = 1;
+                updateModalIslandInputs(); // Função já existente
+            } else if (modalId === 'removeRoomModal') {
+                 document.getElementById('remove-room-error').textContent = ''; // Limpa erro
+                 loadRoomList(); // Carrega a lista de salas via AJAX
+            }
+            // Adicione limpeza para outros modais aqui se necessário
+        
+            modal.style.display = "block";
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+        
+        // Fecha o modal se clicar fora do conteúdo
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            });
+        }
+        
+        function updateModalIslandInputs() {
+            // Atualiza os inputs para contagem de workstations por ilha (similar ao add_room.html)
+            const numIslands = parseInt(document.getElementById('modal_num_islands').value) || 0;
+            const container = document.getElementById('modal-island-details');
+            container.innerHTML = ''; // Limpa inputs existentes
+        
+            if (numIslands > 0) {
+                 // Não adiciona o header 'Detalhes das Ilhas' no modal para economizar espaço
+            }
+        
+            for (let i = 1; i <= numIslands; i++) {
+                // Nota: Não há dados 'existingData' aqui como no template de página separada
+                const div = document.createElement('div');
+                div.className = 'form-group island-input'; // Reutilizar classe se fizer sentido, ou criar nova
+                div.innerHTML = `
+                    <label for="modal_island_${i}_workstations">Workstations Ilha ${i}:</label>
+                    <input type="number" id="modal_island_${i}_workstations" name="island_${i}_workstations" min="1" value="1" required class="form-control">`; // Usa name="island_X_workstations"
+                container.appendChild(div);
+            }
+        }
+        
+        function clearModalErrors() {
+            document.getElementById('modal-name-error').textContent = '';
+            document.getElementById('modal-counts-error').textContent = '';
+            document.getElementById('modal-general-error').textContent = '';
+        }
+        
+        // --- Função AJAX para Adicionar Sala ---
+        function submitAddRoomAjax() {
+            clearModalErrors(); // Limpa erros antigos
+            const form = document.getElementById('add-room-modal-form');
+            const formData = new FormData(form);
+            const url = "{% url 'pam:add_room_ajax' %}"; // *** URL da view AJAX (precisa ser criada) ***
+            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest', // Identifica como requisição AJAX
+                },
+            })
+            .then(response => response.json()) // Espera uma resposta JSON da view
+            .then(data => {
+                if (data.success) {
+                    closeModal('addRoomModal');
+                    // Adiciona mensagem de sucesso Django (opcional, pois a página será recarregada)
+                    // messages.success(...) // Não funciona diretamente no JS
+                    // Recarrega a página para ver a nova sala
+                     window.location.reload();
+                } else {
+                    // Exibe erros retornados pela view
+                    if (data.errors) {
+                        if (data.errors.name) {
+                            document.getElementById('modal-name-error').textContent = data.errors.name.join(', ');
+                        }
+                         if (data.errors.counts) { // Erro geral de contagens
+                            document.getElementById('modal-counts-error').textContent = data.errors.counts.join(', ');
+                        }
+                         if (data.errors.__all__) { // Erros não associados a campos específicos
+                             document.getElementById('modal-general-error').textContent = data.errors.__all__.join(', ');
+                         }
+                         // Adicione tratamento para outros campos se necessário
+                    } else {
+                         document.getElementById('modal-general-error').textContent = "Ocorreu um erro desconhecido.";
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Erro no AJAX:', error);
+                document.getElementById('modal-general-error').textContent = "Erro na comunicação com o servidor.";
+            });
+        }
+        
+        // Chama a função na carga inicial para gerar os inputs iniciais do modal
+        document.addEventListener('DOMContentLoaded', updateModalIslandInputs);
+
+        // --- Funções AJAX para Remover Sala ---
+        
+        function loadRoomList() {
+            const container = document.getElementById('remove-room-list-container');
+            const errorDiv = document.getElementById('remove-room-error');
+            const url = "{% url 'pam:list_rooms_ajax' %}"; // *** URL da view AJAX para listar salas (precisa ser criada) ***
+        
+            container.innerHTML = '<p>Carregando lista de salas...</p>'; // Feedback de carregamento
+            errorDiv.textContent = ''; // Limpa erro anterior
+        
+            fetch(url) // Requisição GET simples
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Erro HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.rooms && data.rooms.length > 0) {
+                        let listHtml = '<ul>';
+                        data.rooms.forEach(room => {
+                            listHtml += `
+                                <li>
+                                    <span>${room.name}</span>
+                                    <button type="button" class="remove-room-btn" onclick="confirmRemoveRoom(${room.id}, '${room.name}')">
+                                        Remover
+                                    </button>
+                                </li>`;
+                        });
+                        listHtml += '</ul>';
+                        container.innerHTML = listHtml;
+                    } else {
+                        container.innerHTML = '<p>Nenhuma sala encontrada para remover.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar lista de salas:', error);
+                    container.innerHTML = '<p>Erro ao carregar a lista de salas.</p>';
+                    errorDiv.textContent = `Erro: ${error.message}`;
+                });
+        }
+        
+        function confirmRemoveRoom(roomId, roomName) {
+            // Usa o confirm() nativo do browser
+            if (confirm(`Tem certeza que deseja remover a sala "${roomName}"?\n\nAtenção: Todas as ilhas e workstations associadas serão permanentemente removidas.`)) {
+                removeRoomAjax(roomId);
+            }
+        }
+        
+        function removeRoomAjax(roomId) {
+            const errorDiv = document.getElementById('remove-room-error');
+            const url = `/office-admin/remove-room-ajax/${roomId}/`; // *** URL da view AJAX de remoção (precisa ser criada) ***
+            // Precisamos pegar o CSRF token de algum lugar no DOM, como do outro form
+            const csrfToken = document.querySelector('#add-room-modal-form [name=csrfmiddlewaretoken]').value;
+        
+            errorDiv.textContent = ''; // Limpa erro anterior
+        
+            fetch(url, {
+                method: 'POST', // Ou DELETE, se preferir e configurar a view para isso
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Fecha o modal e recarrega a página OU atualiza a lista dinamicamente
+                    closeModal('removeRoomModal');
+                    window.location.reload(); // Mais simples por enquanto
+                    // Alternativa: Chamar loadRoomList() novamente para atualizar a lista no modal
+                } else {
+                    errorDiv.textContent = data.error || "Erro desconhecido ao remover a sala.";
+                }
+            })
+            .catch(error => {
+                console.error('Erro no AJAX de remoção:', error);
+                errorDiv.textContent = "Erro na comunicação com o servidor ao tentar remover a sala.";
+            });
+        }
+
+        // Armazena o índice ativo para cada sala
+        const activeIslandIndex = {};
+        
+        function initializeSliders() {
+            document.querySelectorAll('.room-section').forEach(roomSection => {
+                const roomId = roomSection.dataset.roomId;
+                if (roomId) {
+                    activeIslandIndex[roomId] = 0; // Começa no índice 0
+                    const wrapper = roomSection.querySelector('.island-slider-wrapper');
+                    const slides = roomSection.querySelectorAll('.island-slide');
+                    const prevBtn = roomSection.querySelector('.slider-btn.prev');
+                    const nextBtn = roomSection.querySelector('.slider-btn.next');
+                    const numSlides = slides.length;
+        
+                    if (wrapper) {
+                         wrapper.style.transform = 'translateX(0%)';
+                    }
+        
+                    // Ajusta visibilidade inicial dos botões
+                    if (prevBtn) {
+                         prevBtn.style.display = 'none'; // Esconde 'Anterior' no início
+                    }
+                    if (nextBtn) {
+                         // Esconde 'Próxima' se só houver 1 slide, senão mostra
+                         nextBtn.style.display = (numSlides <= 1) ? 'none' : 'inline-block';
+                    }
+                }
+            });
+        }
+        
+        function navigateIsland(roomId, direction) {
+            const roomSection = document.querySelector(`.room-section[data-room-id="${roomId}"]`);
+            if (!roomSection) return;
+        
+            const wrapper = roomSection.querySelector('.island-slider-wrapper');
+            const slides = roomSection.querySelectorAll('.island-slide');
+            const prevBtn = roomSection.querySelector('.slider-btn.prev');
+            const nextBtn = roomSection.querySelector('.slider-btn.next');
+            const numSlides = slides.length;
+        
+            if (numSlides <= 1 || !wrapper) return; // Não faz nada se só 1 slide ou sem wrapper
+        
+            const currentActiveIndex = activeIslandIndex[roomId];
+            let nextIndex = currentActiveIndex + direction;
+        
+            // --- Impede ir além dos limites ---
+            if (nextIndex < 0 || nextIndex >= numSlides) {
+                return; // Sai da função se o movimento for inválido
+            }
+            // -----------------------------------
+        
+            // Calcula o valor de translateX
+            const translateXValue = - (nextIndex * 100);
+        
+            // Aplica a transformação ao wrapper
+            wrapper.style.transform = `translateX(${translateXValue}%)`;
+        
+            // Atualiza o índice ativo armazenado
+            activeIslandIndex[roomId] = nextIndex;
+        
+            // --- Atualiza visibilidade dos botões ---
+            if (prevBtn) {
+                prevBtn.style.display = (nextIndex === 0) ? 'none' : 'inline-block';
+            }
+            if (nextBtn) {
+                nextBtn.style.display = (nextIndex === numSlides - 1) ? 'none' : 'inline-block';
+            }
+            // --------------------------------------
+        }
+        
+        // Inicializa os sliders quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', initializeSliders);
     </script>
+    
+    <!-- Modal Adicionar Sala -->
+    <div id="addRoomModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('addRoomModal')">&times;</span>
+            <h2>Adicionar Nova Sala</h2>
+            <form id="add-room-modal-form">
+                {% csrf_token %} {# Incluir CSRF token aqui também para AJAX POST #}
+                <div class="form-group">
+                    <label for="modal_room_name">Nome da Sala:</label>
+                    {# Usaremos um input simples, a validação será via AJAX/View #}
+                    <input type="text" id="modal_room_name" name="name" class="form-control" placeholder="Nome da Nova Sala" required>
+                     <div id="modal-name-error" class="modal-error"></div> {# Para erros de nome #}
+                </div>
+    
+                <div class="form-group">
+                    <label for="modal_num_islands">Número de Ilhas:</label>
+                    <input type="number" id="modal_num_islands" name="num_islands" min="1" value="1" required class="form-control" oninput="updateModalIslandInputs()"> {# Mudar onchange para oninput para resposta mais rápida #}
+                </div>
+    
+                <div id="modal-island-details">
+                    <!-- Inputs para workstations por ilha serão adicionados aqui pelo JS -->
+                </div>
+                 <div id="modal-counts-error" class="modal-error"></div> {# Para erros gerais de contagem #}
+    
+                <button type="button" onclick="submitAddRoomAjax()" class="submit-btn modal-submit-btn">Criar Sala</button>
+            </form>
+             <div id="modal-general-error" class="modal-error" style="margin-top: 15px;"></div> {# Para erros gerais do AJAX #}
+        </div>
+    </div>
+    
+    <!-- Modal Remover Sala (Lista) -->
+    <div id="removeRoomModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('removeRoomModal')">&times;</span>
+            <h2>Remover Sala Existente</h2>
+            <div id="remove-room-list-container">
+                <!-- Lista de salas será carregada aqui via AJAX -->
+                <p>Carregando lista de salas...</p>
+            </div>
+             <div id="remove-room-error" class="modal-error" style="margin-top: 15px;"></div> {# Para erros gerais do AJAX de remoção #}
+        </div>
+    </div>
+
 </body>
 </html>

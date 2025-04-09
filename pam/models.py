@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.validators import MinLengthValidator
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 class Employee(models.Model):
     SECTOR_CHOICES = [
@@ -29,6 +31,36 @@ class Employee(models.Model):
         return self.name
 
 
+class Room(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="Nome da Sala")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Sala"
+        verbose_name_plural = "Salas"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+class Island(models.Model):
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='islands', verbose_name="Sala")
+    island_number = models.PositiveIntegerField(verbose_name="Número da Ilha")
+    # We might not need 'number_of_workstations' here if Workstations link directly
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Ilha"
+        verbose_name_plural = "Ilhas"
+        unique_together = [['room', 'island_number']] # Each island number must be unique within a room
+        ordering = ['room', 'island_number']
+
+    def __str__(self):
+        return f"Sala {self.room.name} - Ilha {self.island_number}"
+
+
 class Workstation(models.Model):
     STATUS_CHOICES = [
         ('OCCUPIED', 'Ocupada'),
@@ -51,8 +83,8 @@ class Workstation(models.Model):
     )
     sequence = models.PositiveIntegerField(
         verbose_name="Sequência",
-        editable=False,
-        null=True
+        null=True,
+        blank=True
     )
     status = models.CharField(
         max_length=20,
@@ -73,6 +105,14 @@ class Workstation(models.Model):
     mouse = models.BooleanField(default=True, verbose_name="Mouse")
     mousepad = models.BooleanField(default=True, verbose_name="Mousepad")
     headset = models.BooleanField(default=True, verbose_name="Fone de Ouvido")
+    island = models.ForeignKey(
+        Island,
+        on_delete=models.CASCADE,
+        related_name='workstations',
+        verbose_name="Ilha",
+        null=True,
+        blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -80,7 +120,7 @@ class Workstation(models.Model):
         verbose_name = "Estação de Trabalho"
         verbose_name_plural = "Estações de Trabalho"
         unique_together = [['category', 'sequence']]
-        ordering = ['category', 'sequence']
+        ordering = ['island__room__name', 'island__island_number', 'sequence']
 
     def save(self, *args, **kwargs):
         # Só atualiza status automaticamente se não foi definido manualmente
@@ -107,7 +147,7 @@ class Workstation(models.Model):
                 self.employee.sector = new_sector
                 self.employee.save(update_fields=['sector'])
                 
-        if not self.sequence:
+        if not self.sequence and self.category:
             last = Workstation.objects.filter(
                 category=self.category
             ).order_by('-sequence').first()
@@ -120,4 +160,12 @@ class Workstation(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"PA {self.category}-{self.sequence} - {self.employee.name if self.employee else 'Sem funcionário'}"
+        location = f"Sala {self.island.room.name}, Ilha {self.island.island_number}" if self.island else f"Categoria {self.category}"
+        return f"PA {location} Seq {self.sequence} - {self.employee.name if self.employee else 'Sem funcionário'}"
+
+# Signal to handle related objects upon Room deletion if needed more granularly than CASCADE
+# (Optional, CASCADE should handle basic deletion)
+# @receiver(pre_delete, sender=Room)
+# def room_delete_handler(sender, instance, **kwargs):
+#     # Custom logic before a room is deleted, if necessary
+#     pass

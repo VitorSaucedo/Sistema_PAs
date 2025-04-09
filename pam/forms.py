@@ -1,5 +1,5 @@
 from django import forms
-from .models import Workstation, Employee # Import Employee
+from .models import Workstation, Employee, Room # Import Room
 
 class WorkstationForm(forms.ModelForm):
 
@@ -49,3 +49,18 @@ class WorkstationForm(forms.ModelForm):
             'mouse': 'Mouse',
             'headset': 'Fone de Ouvido'
         }
+
+class RoomForm(forms.ModelForm):
+    class Meta:
+        model = Room
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da Nova Sala'})
+        }
+        labels = {
+            'name': 'Nome da Sala'
+        }
+
+# We will handle island/workstation counts dynamically in the view/template
+# class IslandForm(forms.Form):
+#     number_of_workstations = forms.IntegerField(min_value=1, label="Número de Workstations")

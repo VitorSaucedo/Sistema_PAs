@@ -1,0 +1,83 @@
+{% extends "pam/base.html" %}
+{% load static %}
+
+{% block title %}Gerenciar Funcionários{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Gerenciar Funcionários</h1>
+
+    {% if messages %}
+    <div class="messages mb-3">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Formulário para Adicionar Funcionário -->
+    <div class="card mb-4">
+        <div class="card-header">
+            Adicionar Novo Funcionário
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                
+                {{ form.as_p }} {# Renderiza o formulário como parágrafos #}
+                
+                <button type="submit" class="btn btn-primary">Adicionar Funcionário</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela de Funcionários Existentes -->
+    <div class="card">
+        <div class="card-header">
+            Funcionários Cadastrados
+        </div>
+        <div class="card-body">
+            {% if employees %}
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>CPF</th>
+                        <th>Email</th>
+                        <th>Telefone</th>
+                        <th>Setor</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td>{{ employee.name }}</td>
+                        <td>{{ employee.cpf }}</td> {# Idealmente formatar CPF aqui #}
+                        <td>{{ employee.email }}</td>
+                        <td>{{ employee.phone|default:"-" }}</td>
+                        <td>{{ employee.get_sector_display }}</td> {# Usa o display amigável #}
+                        <td>
+                            <form method="post" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja remover {{ employee.name }}?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove">
+                                <input type="hidden" name="employee_id" value="{{ employee.id }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+                            </form>
+                            {# Adicionar botão de Editar aqui no futuro, se necessário #}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>Nenhum funcionário cadastrado.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %} 

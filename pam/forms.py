@@ -55,7 +55,7 @@ class RoomForm(forms.ModelForm):
         model = Room
         fields = ['name']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da Nova Sala'})
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da Sala'}),
         }
         labels = {
             'name': 'Nome da Sala'
@@ -64,3 +64,34 @@ class RoomForm(forms.ModelForm):
 # We will handle island/workstation counts dynamically in the view/template
 # class IslandForm(forms.Form):
 #     number_of_workstations = forms.IntegerField(min_value=1, label="Número de Workstations")
+
+class EmployeeForm(forms.ModelForm):
+    class Meta:
+        model = Employee
+        fields = ['name', 'cpf', 'email', 'phone', 'sector']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Completo'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '123.456.789-00'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(XX) XXXXX-XXXX'}),
+            'sector': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    # Opcional: Adicionar validação customizada para CPF, telefone, etc.
+    def clean_cpf(self):
+        cpf = self.cleaned_data.get('cpf')
+        # Remover caracteres não numéricos para validação/armazenamento
+        cpf_digits = ''.join(filter(str.isdigit, cpf or ''))
+        if len(cpf_digits) != 11:
+            raise forms.ValidationError("CPF deve conter 11 dígitos.")
+        # Adicionar aqui validação de CPF (algoritmo) se desejado
+        return cpf # Ou retorna cpf_digits se quiser salvar só números
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            phone_digits = ''.join(filter(str.isdigit, phone or ''))
+            if not (10 <= len(phone_digits) <= 11):
+                 raise forms.ValidationError("Telefone deve ter 10 ou 11 dígitos (com DDD).")
+            # Adicionar formatação aqui se desejar
+        return phone # Ou retorna formatado

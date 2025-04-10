@@ -10,4 +10,6 @@ urlpatterns = [
     path('office-admin/add-room-ajax/', views.add_room_ajax_view, name='add_room_ajax'),
     path('office-admin/list-rooms-ajax/', views.list_rooms_ajax_view, name='list_rooms_ajax'),
     path('office-admin/remove-room-ajax/<int:room_id>/', views.remove_room_ajax_view, name='remove_room_ajax'),
+    # URL para Gerenciar Funcionários
+    path('manage-employees/', views.manage_employees_view, name='manage_employees'),
 ]

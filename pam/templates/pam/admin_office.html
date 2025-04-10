@@ -23,27 +23,78 @@
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             padding: 20px; /* Aumentado padding */
+            overflow: hidden; /* Contém floats ou elementos posicionados */
         }
         h1 {
             color: #2c3e50;
             text-align: center;
             margin-bottom: 25px;
         }
-        .room-section {
-            margin-bottom: 30px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #fff; /* Fundo branco para destacar a seção */
+        /* --- Estrutura Slider de Salas --- */
+        .room-slider-area {
+            margin-bottom: 30px; /* Espaço abaixo do slider de salas */
         }
-        .room-header {
-            font-size: 1.6em;
-            color: #3498db;
+        .room-tabs {
+            display: flex;
+            flex-wrap: wrap; /* Permite que as abas quebrem linha se necessário */
+            gap: 5px; /* Espaço entre abas */
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 2px solid #eee;
         }
-         .island-section {
+        .room-tab-btn {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            color: #555;
+            border-radius: 4px 4px 0 0; /* Cantos arredondados no topo */
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            border-bottom: none; /* Remove borda inferior padrão */
+        }
+        .room-tab-btn:hover {
+            background-color: #e0e0e0;
+        }
+        .room-tab-btn.active {
+            background-color: #fff; /* Fundo da aba ativa (combina com fundo do conteúdo) */
+            border-color: #eee; /* Borda coincide com a linha abaixo das abas */
+            border-bottom: 2px solid #fff; /* 'Corta' a linha abaixo da aba ativa */
+            color: #3498db; /* Cor da aba ativa */
+            position: relative;
+            top: 2px; /* Alinha com a borda inferior */
+            font-weight: bold;
+        }
+        .room-content-container {
+           position: relative;
+            overflow: hidden;
+           width: 100%;
+        }
+        .room-content-wrapper {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        /* room-section agora é room-slide */
+        .room-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            /* padding: 15px; */ /* Padding pode ser removido ou ajustado se já houver nos filhos */
+            /* border: 1px solid #ddd; */ /* Bordas podem ser removidas ou gerenciadas pelo container */
+            /* border-radius: 8px; */
+            /* background-color: #fff; */ /* Fundo já vem do office-container */
+            /* margin-bottom: 30px; */ /* Removido, o espaçamento é do .room-slider-area */
+        }
+        /* --- Fim Estrutura Slider de Salas --- */
+
+        .room-header { /* Header da sala dentro do slide */
+            font-size: 1.6em;
+            color: #3498db;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            /* border-bottom: 2px solid #eee; */ /* Removido, separação visual vem das abas */
+        }
+        .island-section {
             margin-top: 15px;
             margin-bottom: 15px;
             padding-left: 10px;
@@ -90,7 +141,7 @@
             font-size: 0.85em;
             font-weight: 600;
         }
-         .employee-name {
+        .employee-name {
             font-weight: 600;
             font-size: 0.9em; /* Ajustado */
             margin-bottom: 4px; /* Aumentado */
@@ -134,7 +185,7 @@
         .admin-actions { text-align: center; margin-bottom: 25px; margin-top: 10px; }
         .admin-action-btn { display: inline-block; background: #5dade2; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 1em; text-decoration: none; margin: 0 10px; transition: background-color 0.2s; }
         .admin-action-btn:hover { background: #3498db; }
-        
+
         /* --- Estilos do Modal --- */
         .modal {
             display: none; /* Oculto por padrão */
@@ -234,7 +285,7 @@
         .dark-theme .modal-error {
             color: #f8d7da; /* Cor de erro mais clara para tema escuro */
         }
-        
+
         /* Estilos específicos para lista de remoção (se necessário) */
         #remove-room-list-container ul {
             list-style: none;
@@ -273,51 +324,35 @@
         .dark-theme #remove-room-list-container .remove-room-btn {
             /* Estilos dark theme para o botão se necessário */
         }
-        
-        /* --- Estilos do Slider de Ilhas (Ajustados para Botões Laterais) --- */
-        
-        /* Novo container que alinha botões e slider */
+
+        /* --- Estilos do Slider de Ilhas (Inalterado) --- */
         .slider-area {
-            position: relative; /* Necessário para posicionar botões filhos absolutamente */
-            padding: 0 50px; /* Adiciona espaço nas laterais para os botões (ajuste conforme necessário) */
+            position: relative;
+            padding: 0 50px;
             margin-top: 15px;
-            /* display: flex; */ /* Não mais necessário aqui */
-            /* align-items: center; */ /* Removido */
         }
-        
-        /* Container do slider (viewport) */
         .island-slider-container {
-            /* flex-grow: 1; */ /* Removido */
-            /* margin-top: 0; */ /* Removido */
-            /* Outros estilos mantidos: position, overflow, width, min-height */
             position: relative;
             overflow: hidden;
             width: 100%;
             min-height: 300px;
         }
-        
-        /* Wrapper interno que se move (inalterado) */
         .island-slider-wrapper {
             display: flex;
             height: 100%;
             transition: transform 0.5s ease-in-out;
             transform: translateX(0%);
         }
-        
-        /* Slide individual (inalterado) */
         .island-slide {
             min-width: 100%;
             box-sizing: border-box;
             flex-shrink: 0;
         }
-        
-        /* Estilos ajustados para os botões laterais */
         .slider-btn.side-btn {
-            position: absolute; /* Posicionamento absoluto */
-            top: 50%; /* Começa no meio vertical do .slider-area */
-            transform: translateY(-50%); /* Ajusta para centralizar o próprio botão */
-            z-index: 10; /* Garante que fique acima do conteúdo */
-            /* Estilos visuais mantidos */
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
             background-color: #5dade2;
             color: white;
             border: none;
@@ -327,28 +362,13 @@
             font-size: 1.2em;
             line-height: 1;
             transition: background-color 0.2s;
-            /* flex-shrink: 0; */ /* Não necessário com position: absolute */
         }
-        .slider-btn.side-btn.prev {
-            left: 10px; /* Posição a partir da esquerda (dentro do padding) */
-        }
-        .slider-btn.side-btn.next {
-            right: 10px; /* Posição a partir da direita (dentro do padding) */
-        }
-        .slider-btn.side-btn:hover {
-            background-color: #3498db;
-        }
-        
-        /* Dark Theme para botões laterais (mantido) */
-        .dark-theme .slider-btn.side-btn {
-             background-color: #2980b9;
-             color: #e0e0e0;
-        }
-        .dark-theme .slider-btn.side-btn:hover {
-             background-color: #1f618d;
-        }
-        
-        /* Regras .slider-nav podem ser removidas completamente */
+        .slider-btn.side-btn.prev { left: 10px; }
+        .slider-btn.side-btn.next { right: 10px; }
+        .slider-btn.side-btn:hover { background-color: #3498db; }
+        .dark-theme .slider-btn.side-btn { background-color: #2980b9; color: #e0e0e0; }
+        .dark-theme .slider-btn.side-btn:hover { background-color: #1f618d; }
+
     </style>
     <style> /* Dark Theme Overrides */
         .dark-theme body {
@@ -362,8 +382,28 @@
         .dark-theme h1 {
             color: #e0e0e0;
         }
-        .dark-theme .room-section { background-color: #2a2a2a; border-color: #444; }
-        .dark-theme .room-header { color: #5dade2; border-bottom-color: #444; }
+        /* --- Dark Theme para Slider de Salas --- */
+        .dark-theme .room-tabs {
+            border-bottom-color: #444;
+        }
+        .dark-theme .room-tab-btn {
+            background-color: #2a2a2a;
+            border-color: #555;
+            color: #bbb;
+        }
+        .dark-theme .room-tab-btn:hover {
+            background-color: #383838;
+        }
+        .dark-theme .room-tab-btn.active {
+            background-color: #1e1e1e; /* Fundo do office-container dark */
+            border-color: #444; /* Borda coincide com linha */
+            border-bottom-color: #1e1e1e; /* 'Corta' a linha */
+            color: #5dade2; /* Cor ativa dark */
+        }
+        /* --- Fim Dark Theme Slider de Salas --- */
+
+        /* .dark-theme .room-section { background-color: #2a2a2a; border-color: #444; } */ /* Não mais necessário se .room-slide não tiver fundo/borda própria */
+        .dark-theme .room-header { color: #5dade2; /*border-bottom-color: #444;*/ } /* border-bottom removido */
         .dark-theme .island-header { color: #7cc0f0; }
         .dark-theme .workstation { background: #2d2d2d; box-shadow: 0 1px 6px rgba(0,0,0,0.2); border-color: #444; }
         .dark-theme .workstation:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.3); border-color: #555; }
@@ -390,13 +430,13 @@
 <body class="dark-theme">
     <div class="office-container">
         <h1>Admin - Visão do Escritório</h1>
-        
+
         <!-- Botões de Ação Admin -->
         <div class="admin-actions">
             <button type="button" class="admin-action-btn" onclick="openModal('addRoomModal')">Adicionar Sala</button>
             <button type="button" class="admin-action-btn" onclick="openModal('removeRoomModal')">Remover Sala</button>
         </div>
-        
+
         {% if messages %}
         <div style="margin-bottom: 20px;">
             {% for message in messages %}
@@ -406,92 +446,105 @@
             {% endfor %}
         </div>
         {% endif %}
-        <form method="post">
+
+        <form method="post" id="workstation-form"> {# Adicionado ID ao form para referência #}
             {% csrf_token %}
-            <input type="hidden" name="modified_pa" value="" id="global-modified-pa">
             
-            <!-- Estrutura Principal: Iterar sobre Salas, Ilhas e Workstations -->
+            <!-- Estrutura do Slider de Salas -->
             {% if rooms_data %}
-                {% for room in rooms_data %}
-                <div class="room-section" data-room-id="{{ room.id }}">
-                    <h2 class="room-header">{{ room.name }}</h2>
-                
-                    <div class="slider-area"> {# NOVO WRAPPER #}
-                
-                        <button type="button" class="slider-btn side-btn prev" onclick="navigateIsland('{{ room.id }}', -1)" style="display: none;">&lt;</button> {# MOVIDO E COM NOVA CLASSE #}
-                
-                        <div class="island-slider-container"> {# Container do slider continua aqui #}
-                            <div class="island-slider-wrapper">
-                                {% for island in room.islands_prefetched %}
-                                <div class="island-section island-slide" data-index="{{ forloop.counter0 }}">
-                                    <h3 class="island-header">Ilha {{ island.island_number }}</h3>
-                                    <div class="workstations-columns-container">
-                                        {% for column in island.processed_columns %}
-                                            <div class="workstation-column">
-                                                {% for item in column %}
-                                                    {% with workstation=item.workstation form=item.form %}
-                                                        <div class="workstation">
-                                                            <div class="workstation-number">{{ workstation.display_sequence }}</div>
-                                                            <div class="employee-name">{{ form.employee }}</div>
-                                                            {% if workstation.category %}<div class="detail">Cat: {{ workstation.category }}</div>{% endif %}
-                                                            <input type="hidden" name="{{ form.prefix }}-status" value="{{ workstation.status }}" class="status-input">
-                                                            <div class="status-container">
-                                                                <div class="status-btn {% if workstation.status == 'OCCUPIED' %}status-occupied {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied {% else %}status-issue {% endif %}" onclick="toggleStatusOptions(this)"></div>
-                                                                <div class="status-options">
-                                                                    <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')"><div class="status-preview status-occupied"></div><span>Ocupada</span></div>
-                                                                    <div class="status-option" onclick="selectStatus(this, 'UNOCCUPIED', 'status-unoccupied', '{{ workstation.id }}')"><div class="status-preview status-unoccupied"></div><span>Vaga</span></div>
-                                                                    <div class="status-option" onclick="selectStatus(this, 'MAINTENANCE', 'status-issue', '{{ workstation.id }}')"><div class="status-preview status-issue"></div><span>Manutenção</span></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    {% endwith %}
-                                                {% empty %}
-                                                    <p style="visibility: hidden;">Coluna vazia</p>
-                                                {% endfor %}
-                                            </div>
-                                        {% endfor %}
+                <div class="room-slider-area">
+                    <!-- Abas das Salas -->
+                    <div class="room-tabs">
+                        {% for room in rooms_data %}
+                            <button type="button" class="room-tab-btn {% if forloop.first %}active{% endif %}" data-room-index="{{ forloop.counter0 }}">
+                                {{ room.name }}
+                            </button>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Container do Conteúdo das Salas -->
+                    <div class="room-content-container">
+                        <div class="room-content-wrapper">
+                            {% for room in rooms_data %}
+                            <div class="room-slide" data-room-id="{{ room.id }}"> {# Era room-section #}
+                                
+
+                                <!-- Slider de Ilhas (estrutura interna inalterada) -->
+                                <div class="slider-area">
+                                    <button type="button" class="slider-btn side-btn prev" onclick="navigateIsland('{{ room.id }}', -1)" style="display: none;">&lt;</button>
+                                    <div class="island-slider-container">
+                                        <div class="island-slider-wrapper">
+                                            {% for island in room.islands_prefetched %}
+                                            <div class="island-section island-slide" data-index="{{ forloop.counter0 }}">
+                                                <h3 class="island-header">Ilha {{ island.island_number }}</h3>
+                                                <div class="workstations-columns-container">
+                                                    {% for column in island.processed_columns %}
+                                                        <div class="workstation-column">
+                                                            {% for item in column %}
+                                                                {% with workstation=item.workstation form=item.form %}
+                        <div class="workstation">
+                                                                        <div class="workstation-number">{{ workstation.display_sequence }}</div>
+                                                                        <div class="employee-select-container mb-2"> {# Adiciona margem inferior #}
+                                                                            {{ form.employee }} {# Renderiza o campo <select> do formulário #}
+                                                                        </div>
+                                                                        {% if workstation.category %}<div class="detail">Cat: {{ workstation.category }}</div>{% endif %}
+                                                                        <input type="hidden" name="{{ form.prefix }}-status" value="{{ workstation.status }}" class="status-input">
+                            <div class="status-container">
+                                                                            <div class="status-btn {% if workstation.status == 'OCCUPIED' %}status-occupied {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied {% else %}status-issue {% endif %}" onclick="toggleStatusOptions(this)"></div>
+                                <div class="status-options">
+                                                                                <div class="status-option" onclick="selectStatus(this, 'OCCUPIED', 'status-occupied', '{{ workstation.id }}')"><div class="status-preview status-occupied"></div><span>Ocupada</span></div>
+                                                                                <div class="status-option" onclick="selectStatus(this, 'UNOCCUPIED', 'status-unoccupied', '{{ workstation.id }}')"><div class="status-preview status-unoccupied"></div><span>Vaga</span></div>
+                                                                                <div class="status-option" onclick="selectStatus(this, 'MAINTENANCE', 'status-issue', '{{ workstation.id }}')"><div class="status-preview status-issue"></div><span>Manutenção</span></div>
                                     </div>
-                                    {% if not island.processed_columns %}
-                                        <p>Nenhuma workstation nesta ilha.</p>
-                                    {% endif %}
-                                </div> {# Fim island-section #}
-                                {% empty %}
-                                    <div class="island-section island-slide"><p>Nenhuma ilha nesta sala.</p></div> {# Placeholder se não houver ilhas #}
-                                {% endfor %}
-                            </div> {# Fim island-slider-wrapper #}
-                        </div> {# Fim island-slider-container #}
-                
-                        <button type="button" class="slider-btn side-btn next" onclick="navigateIsland('{{ room.id }}', 1)" {% if room.islands_prefetched|length <= 1 %}style="display: none;"{% endif %}>&gt;</button> {# MOVIDO E COM NOVA CLASSE #}
-                
-                    </div> {# Fim slider-area #}
-                </div> {# Fim room-section #}
-                {% endfor %}
+                                </div>
+                            </div>
+                                                                {% endwith %}
+                                                            {% empty %}
+                                                                <p style="visibility: hidden;">Coluna vazia</p>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+                                                {% if not island.processed_columns %}
+                                                    <p>Nenhuma workstation nesta ilha.</p>
+                               {% endif %}
+                                            </div> {# Fim island-slide #}
+                                            {% empty %}
+                                                <div class="island-section island-slide"><p>Nenhuma ilha nesta sala.</p></div>
+                        {% endfor %}
+                                        </div> {# Fim island-slider-wrapper #}
+                                    </div> {# Fim island-slider-container #}
+                                    <button type="button" class="slider-btn side-btn next" onclick="navigateIsland('{{ room.id }}', 1)" {% if room.islands_prefetched|length <= 1 %}style="display: none;"{% endif %}>&gt;</button>
+                                </div> {# Fim slider-area (ilhas) #}
+                            </div> {# Fim room-slide #}
+                    {% endfor %}
+                        </div> {# Fim room-content-wrapper #}
+                    </div> {# Fim room-content-container #}
+                </div> {# Fim room-slider-area #}
             {% else %}
                 <p style="text-align: center; margin-top: 30px;">Nenhuma sala cadastrada ainda.</p>
             {% endif %}
 
-            <!-- Botão Salvar Alterações (Fora do loop) -->
+            <!-- Botão Salvar Alterações (Fora da estrutura do slider) -->
             <div style="text-align: center; margin-top: 30px;">
+                 {% if rooms_data %} {# Só mostra o botão se houver salas #}
                 <button type="submit" class="submit-btn">Salvar Alterações</button>
+                 {% endif %}
             </div>
         </form>
     </div>
 
     <script>
-        function handleModification(paId, field = null) {
-            document.getElementById('global-modified-pa').value = paId;
-            if (field) {
-                const input = document.querySelector(`[name="${paId}-${field}"]`);
-                if (input) {
-                    input.dispatchEvent(new Event('change'));
-                }
-            }
-        }
+        // --- Lógica de Modificação e Status (Simplificada) ---
+        // Não precisamos mais de handleModification ou do input escondido global-modified-pa
+        // function handleModification(paId, field = null) { ... }
+        // Remover: <input type="hidden" name="modified_pa" value="" id="global-modified-pa">
 
         function toggleStatusOptions(btn) {
             const options = btn.nextElementSibling;
             if (!options) { return; }
             const currentlyOpen = options.style.display === 'block';
+            // Fecha todos os outros menus de status abertos
             document.querySelectorAll('.status-options').forEach(el => {
                 if (el !== options) { el.style.display = 'none'; }
             });
@@ -501,129 +554,107 @@
         function selectStatus(option, statusValue, statusClass, paId) {
             const workstation = option.closest('.workstation');
             const statusBtn = workstation.querySelector('.status-btn');
-            const statusInput = workstation.querySelector('.status-input');
-            const formPrefix = statusInput.name.split('-')[0];
-            
+            const statusInput = workstation.querySelector('.status-input'); // Input escondido que guarda o status para o POST
+
+            // Apenas atualiza o visual do botão e o valor do input escondido
             statusBtn.className = 'status-btn ' + statusClass;
             statusInput.value = statusValue;
-            handleModification(paId, 'status');
 
+            // Opcional: Se o status for 'Vaga', limpar visualmente o nome do funcionário (se houver)
+            // if (statusValue === 'UNOCCUPIED') {
+            //     const employeeNameDiv = workstation.querySelector('.employee-name');
+            //     if (employeeNameDiv) employeeNameDiv.textContent = '-'; // Ou o que for apropriado
+            // }
+
+            // Fecha o menu de opções
             option.closest('.status-options').style.display = 'none';
+            // A submissão e salvamento são feitos pelo botão global "Salvar Alterações"
         }
 
-        document.querySelectorAll('select[name$="-employee"]').forEach(select => {
-            select.addEventListener('change', function() {
-                const paId = this.name.split('-')[0];
-                handleModification(paId, 'employee');
-            });
-        });
-
+        // Listener para fechar menus de status ao clicar fora (Inalterado)
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.status-container')) {
                 document.querySelectorAll('.status-options').forEach(el => {
                     el.style.display = 'none';
                 });
             }
+             // Fecha modais ao clicar fora (Inalterado)
+             const modals = document.querySelectorAll('.modal');
+             modals.forEach(modal => {
+                 if (event.target == modal) {
+                     modal.style.display = "none";
+                 }
+             });
         });
 
-        // --- Funções de Controle do Modal ---
+        // --- Funções de Controle do Modal (Inalteradas) ---
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
             if (!modal) return;
-        
-            // Limpeza específica para cada modal
             if (modalId === 'addRoomModal') {
-                clearModalErrors(); // Função já existente
+                clearModalErrors();
                 document.getElementById('modal_room_name').value = '';
                 document.getElementById('modal_num_islands').value = 1;
-                updateModalIslandInputs(); // Função já existente
+                updateModalIslandInputs();
             } else if (modalId === 'removeRoomModal') {
-                 document.getElementById('remove-room-error').textContent = ''; // Limpa erro
-                 loadRoomList(); // Carrega a lista de salas via AJAX
+                 document.getElementById('remove-room-error').textContent = '';
+                 loadRoomList();
             }
-            // Adicione limpeza para outros modais aqui se necessário
-        
             modal.style.display = "block";
         }
-        
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = "none";
         }
-        
-        // Fecha o modal se clicar fora do conteúdo
-        window.onclick = function(event) {
-            const modals = document.querySelectorAll('.modal');
-            modals.forEach(modal => {
-                if (event.target == modal) {
-                    modal.style.display = "none";
-                }
-            });
-        }
-        
         function updateModalIslandInputs() {
-            // Atualiza os inputs para contagem de workstations por ilha (similar ao add_room.html)
             const numIslands = parseInt(document.getElementById('modal_num_islands').value) || 0;
             const container = document.getElementById('modal-island-details');
-            container.innerHTML = ''; // Limpa inputs existentes
-        
-            if (numIslands > 0) {
-                 // Não adiciona o header 'Detalhes das Ilhas' no modal para economizar espaço
-            }
-        
+            container.innerHTML = '';
             for (let i = 1; i <= numIslands; i++) {
-                // Nota: Não há dados 'existingData' aqui como no template de página separada
                 const div = document.createElement('div');
-                div.className = 'form-group island-input'; // Reutilizar classe se fizer sentido, ou criar nova
+                div.className = 'form-group island-input';
                 div.innerHTML = `
-                    <label for="modal_island_${i}_workstations">Workstations Ilha ${i}:</label>
-                    <input type="number" id="modal_island_${i}_workstations" name="island_${i}_workstations" min="1" value="1" required class="form-control">`; // Usa name="island_X_workstations"
+                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;"> <!-- Flex container for inputs -->
+                        <div style="flex-grow: 1;">
+                            <label for="modal_island_${i}_workstations">Workstations Ilha ${i}:</label>
+                            <input type="number" id="modal_island_${i}_workstations" name="island_${i}_workstations" min="1" value="1" required class="form-control">
+                        </div>
+                        <div style="flex-basis: 150px;"> <!-- Adjust width as needed -->
+                            <label for="modal_island_${i}_category">Categoria Ilha ${i}:</label>
+                            <input type="text" id="modal_island_${i}_category" name="island_${i}_category" class="form-control" placeholder="Ex: Estágio, Padrão"> 
+                        </div>
+                    </div>`;
                 container.appendChild(div);
             }
         }
-        
         function clearModalErrors() {
             document.getElementById('modal-name-error').textContent = '';
             document.getElementById('modal-counts-error').textContent = '';
             document.getElementById('modal-general-error').textContent = '';
         }
-        
-        // --- Função AJAX para Adicionar Sala ---
+
+        // --- Funções AJAX para Modais (Inalteradas) ---
         function submitAddRoomAjax() {
-            clearModalErrors(); // Limpa erros antigos
+            clearModalErrors();
             const form = document.getElementById('add-room-modal-form');
             const formData = new FormData(form);
-            const url = "{% url 'pam:add_room_ajax' %}"; // *** URL da view AJAX (precisa ser criada) ***
+            const url = "{% url 'pam:add_room_ajax' %}";
             const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
-        
+
             fetch(url, {
                 method: 'POST',
                 body: formData,
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest', // Identifica como requisição AJAX
-                },
+                headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
             })
-            .then(response => response.json()) // Espera uma resposta JSON da view
+            .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     closeModal('addRoomModal');
-                    // Adiciona mensagem de sucesso Django (opcional, pois a página será recarregada)
-                    // messages.success(...) // Não funciona diretamente no JS
-                    // Recarrega a página para ver a nova sala
-                     window.location.reload();
+                    window.location.reload();
                 } else {
-                    // Exibe erros retornados pela view
                     if (data.errors) {
-                        if (data.errors.name) {
-                            document.getElementById('modal-name-error').textContent = data.errors.name.join(', ');
-                        }
-                         if (data.errors.counts) { // Erro geral de contagens
-                            document.getElementById('modal-counts-error').textContent = data.errors.counts.join(', ');
-                        }
-                         if (data.errors.__all__) { // Erros não associados a campos específicos
-                             document.getElementById('modal-general-error').textContent = data.errors.__all__.join(', ');
-                         }
-                         // Adicione tratamento para outros campos se necessário
+                        if (data.errors.name) document.getElementById('modal-name-error').textContent = data.errors.name.join(', ');
+                        if (data.errors.counts) document.getElementById('modal-counts-error').textContent = data.errors.counts.join(', ');
+                        if (data.errors.__all__) document.getElementById('modal-general-error').textContent = data.errors.__all__.join(', ');
                     } else {
                          document.getElementById('modal-general-error').textContent = "Ocorreu um erro desconhecido.";
                     }
@@ -634,44 +665,22 @@
                 document.getElementById('modal-general-error').textContent = "Erro na comunicação com o servidor.";
             });
         }
-        
-        // Chama a função na carga inicial para gerar os inputs iniciais do modal
-        document.addEventListener('DOMContentLoaded', updateModalIslandInputs);
-
-        // --- Funções AJAX para Remover Sala ---
-        
         function loadRoomList() {
             const container = document.getElementById('remove-room-list-container');
             const errorDiv = document.getElementById('remove-room-error');
-            const url = "{% url 'pam:list_rooms_ajax' %}"; // *** URL da view AJAX para listar salas (precisa ser criada) ***
-        
-            container.innerHTML = '<p>Carregando lista de salas...</p>'; // Feedback de carregamento
-            errorDiv.textContent = ''; // Limpa erro anterior
-        
-            fetch(url) // Requisição GET simples
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Erro HTTP ${response.status}`);
-                    }
-                    return response.json();
-                })
+            const url = "{% url 'pam:list_rooms_ajax' %}";
+            container.innerHTML = '<p>Carregando lista de salas...</p>';
+            errorDiv.textContent = '';
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => { if (!response.ok) throw new Error(`Erro HTTP ${response.status}`); return response.json(); })
                 .then(data => {
                     if (data.rooms && data.rooms.length > 0) {
                         let listHtml = '<ul>';
                         data.rooms.forEach(room => {
-                            listHtml += `
-                                <li>
-                                    <span>${room.name}</span>
-                                    <button type="button" class="remove-room-btn" onclick="confirmRemoveRoom(${room.id}, '${room.name}')">
-                                        Remover
-                                    </button>
-                                </li>`;
+                            listHtml += `<li><span>${room.name}</span><button type="button" class="remove-room-btn" onclick="confirmRemoveRoom(${room.id}, '${room.name}')">Remover</button></li>`;
                         });
-                        listHtml += '</ul>';
-                        container.innerHTML = listHtml;
-                    } else {
-                        container.innerHTML = '<p>Nenhuma sala encontrada para remover.</p>';
-                    }
+                        container.innerHTML = listHtml + '</ul>';
+                    } else { container.innerHTML = '<p>Nenhuma sala encontrada para remover.</p>'; }
                 })
                 .catch(error => {
                     console.error('Erro ao buscar lista de salas:', error);
@@ -679,36 +688,27 @@
                     errorDiv.textContent = `Erro: ${error.message}`;
                 });
         }
-        
         function confirmRemoveRoom(roomId, roomName) {
-            // Usa o confirm() nativo do browser
-            if (confirm(`Tem certeza que deseja remover a sala "${roomName}"?\n\nAtenção: Todas as ilhas e workstations associadas serão permanentemente removidas.`)) {
+            if (confirm(`Tem certeza que deseja remover a sala "${roomName}"?
+
+Atenção: Todas as ilhas e workstations associadas serão permanentemente removidas.`)) {
                 removeRoomAjax(roomId);
             }
         }
-        
         function removeRoomAjax(roomId) {
             const errorDiv = document.getElementById('remove-room-error');
-            const url = `/office-admin/remove-room-ajax/${roomId}/`; // *** URL da view AJAX de remoção (precisa ser criada) ***
-            // Precisamos pegar o CSRF token de algum lugar no DOM, como do outro form
-            const csrfToken = document.querySelector('#add-room-modal-form [name=csrfmiddlewaretoken]').value;
-        
-            errorDiv.textContent = ''; // Limpa erro anterior
-        
+            const url = `/office-admin/remove-room-ajax/${roomId}/`;
+            const csrfToken = document.querySelector('#workstation-form [name=csrfmiddlewaretoken]').value; // Pega o token do form principal
+            errorDiv.textContent = '';
             fetch(url, {
-                method: 'POST', // Ou DELETE, se preferir e configurar a view para isso
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Fecha o modal e recarrega a página OU atualiza a lista dinamicamente
                     closeModal('removeRoomModal');
-                    window.location.reload(); // Mais simples por enquanto
-                    // Alternativa: Chamar loadRoomList() novamente para atualizar a lista no modal
+                    window.location.reload();
                 } else {
                     errorDiv.textContent = data.error || "Erro desconhecido ao remover a sala.";
                 }
@@ -719,120 +719,136 @@
             });
         }
 
-        // Armazena o índice ativo para cada sala
-        const activeIslandIndex = {};
-        
-        function initializeSliders() {
-            document.querySelectorAll('.room-section').forEach(roomSection => {
-                const roomId = roomSection.dataset.roomId;
+        // --- Lógica do Slider de Ilhas (Inalterada) ---
+        const activeIslandIndex = {}; // Continua igual
+
+        function initializeIslandSliders() { // Renomeada para clareza
+            document.querySelectorAll('.room-slide').forEach(roomSlide => { // Itera sobre os novos room-slide
+                const roomId = roomSlide.dataset.roomId;
                 if (roomId) {
-                    activeIslandIndex[roomId] = 0; // Começa no índice 0
-                    const wrapper = roomSection.querySelector('.island-slider-wrapper');
-                    const slides = roomSection.querySelectorAll('.island-slide');
-                    const prevBtn = roomSection.querySelector('.slider-btn.prev');
-                    const nextBtn = roomSection.querySelector('.slider-btn.next');
+                    activeIslandIndex[roomId] = 0;
+                    const wrapper = roomSlide.querySelector('.island-slider-wrapper');
+                    const slides = roomSlide.querySelectorAll('.island-slide');
+                    const prevBtn = roomSlide.querySelector('.slider-btn.side-btn.prev');
+                    const nextBtn = roomSlide.querySelector('.slider-btn.side-btn.next');
                     const numSlides = slides.length;
-        
-                    if (wrapper) {
-                         wrapper.style.transform = 'translateX(0%)';
-                    }
-        
-                    // Ajusta visibilidade inicial dos botões
-                    if (prevBtn) {
-                         prevBtn.style.display = 'none'; // Esconde 'Anterior' no início
-                    }
-                    if (nextBtn) {
-                         // Esconde 'Próxima' se só houver 1 slide, senão mostra
-                         nextBtn.style.display = (numSlides <= 1) ? 'none' : 'inline-block';
-                    }
+
+                    if (wrapper) wrapper.style.transform = 'translateX(0%)';
+                    if (prevBtn) prevBtn.style.display = 'none';
+                    if (nextBtn) nextBtn.style.display = (numSlides <= 1) ? 'none' : 'inline-block'; // Ou 'block'/'flex' dependendo do estilo
                 }
             });
         }
-        
+
         function navigateIsland(roomId, direction) {
-            const roomSection = document.querySelector(`.room-section[data-room-id="${roomId}"]`);
-            if (!roomSection) return;
-        
-            const wrapper = roomSection.querySelector('.island-slider-wrapper');
-            const slides = roomSection.querySelectorAll('.island-slide');
-            const prevBtn = roomSection.querySelector('.slider-btn.prev');
-            const nextBtn = roomSection.querySelector('.slider-btn.next');
+            const roomSlide = document.querySelector(`.room-slide[data-room-id="${roomId}"]`); // Busca dentro do room-slide
+            if (!roomSlide) return;
+
+            const wrapper = roomSlide.querySelector('.island-slider-wrapper');
+            const slides = roomSlide.querySelectorAll('.island-slide');
+            const prevBtn = roomSlide.querySelector('.slider-btn.side-btn.prev');
+            const nextBtn = roomSlide.querySelector('.slider-btn.side-btn.next');
             const numSlides = slides.length;
-        
-            if (numSlides <= 1 || !wrapper) return; // Não faz nada se só 1 slide ou sem wrapper
-        
+
+            if (numSlides <= 1 || !wrapper) return;
+
             const currentActiveIndex = activeIslandIndex[roomId];
             let nextIndex = currentActiveIndex + direction;
-        
-            // --- Impede ir além dos limites ---
-            if (nextIndex < 0 || nextIndex >= numSlides) {
-                return; // Sai da função se o movimento for inválido
-            }
-            // -----------------------------------
-        
-            // Calcula o valor de translateX
+
+            if (nextIndex < 0 || nextIndex >= numSlides) return;
+
             const translateXValue = - (nextIndex * 100);
-        
-            // Aplica a transformação ao wrapper
             wrapper.style.transform = `translateX(${translateXValue}%)`;
-        
-            // Atualiza o índice ativo armazenado
             activeIslandIndex[roomId] = nextIndex;
-        
-            // --- Atualiza visibilidade dos botões ---
-            if (prevBtn) {
-                prevBtn.style.display = (nextIndex === 0) ? 'none' : 'inline-block';
-            }
-            if (nextBtn) {
-                nextBtn.style.display = (nextIndex === numSlides - 1) ? 'none' : 'inline-block';
-            }
-            // --------------------------------------
+
+            if (prevBtn) prevBtn.style.display = (nextIndex === 0) ? 'none' : 'inline-block'; // Ou 'block'/'flex'
+            if (nextBtn) nextBtn.style.display = (nextIndex === numSlides - 1) ? 'none' : 'inline-block'; // Ou 'block'/'flex'
         }
-        
-        // Inicializa os sliders quando o DOM estiver pronto
-        document.addEventListener('DOMContentLoaded', initializeSliders);
+
+        // --- Lógica do Slider de Salas (Inalterada) ---
+        let activeRoomIndex = 0; // Índice da sala ativa
+        const roomContentWrapper = document.querySelector('.room-content-wrapper');
+        const roomTabs = document.querySelectorAll('.room-tab-btn');
+
+        function initializeRoomSlider() {
+            if (!roomContentWrapper || roomTabs.length === 0) return; // Sai se não houver salas
+
+            // Garante que o wrapper comece na posição correta (primeira sala)
+            roomContentWrapper.style.transform = 'translateX(0%)';
+
+            // Marca a primeira aba como ativa (já feito no HTML, mas reforça)
+            roomTabs.forEach((tab, index) => {
+                tab.classList.toggle('active', index === 0);
+                // Adiciona o listener de clique
+                tab.addEventListener('click', () => {
+                    navigateToRoom(index);
+                });
+            });
+        }
+
+        function navigateToRoom(targetIndex) {
+            if (!roomContentWrapper || targetIndex < 0 || targetIndex >= roomTabs.length || targetIndex === activeRoomIndex) {
+                return; // Não faz nada se o índice for inválido ou já for o ativo
+            }
+
+            // Calcula a translação
+            const translateXValue = - (targetIndex * 100);
+            roomContentWrapper.style.transform = `translateX(${translateXValue}%)`;
+
+            // Atualiza a classe 'active' nas abas
+            roomTabs[activeRoomIndex].classList.remove('active');
+            roomTabs[targetIndex].classList.add('active');
+
+            // Atualiza o índice ativo
+            activeRoomIndex = targetIndex;
+
+            // Opcional: Reinicializar/Resetar o estado do slider de ilhas da sala que acabou de ficar visível?
+            // const activeRoomSlide = document.querySelector(`.room-slide[data-room-id="${roomTabs[targetIndex].dataset.roomId}"]`); // Precisaria adicionar data-room-id na tab ou buscar de outra forma
+            // initializeIslandSliders(); // Poderia chamar para garantir que o slider interno esteja ok, mas pode não ser necessário.
+        }
+
+        // Inicializa sliders e modal na carga da página (Inalterado)
+        document.addEventListener('DOMContentLoaded', () => {
+             initializeRoomSlider();
+             initializeIslandSliders();
+             updateModalIslandInputs();
+        });
+
     </script>
-    
-    <!-- Modal Adicionar Sala -->
+
+    <!-- Modal Adicionar Sala (Inalterado) -->
     <div id="addRoomModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('addRoomModal')">&times;</span>
             <h2>Adicionar Nova Sala</h2>
             <form id="add-room-modal-form">
-                {% csrf_token %} {# Incluir CSRF token aqui também para AJAX POST #}
+                {% csrf_token %}
                 <div class="form-group">
                     <label for="modal_room_name">Nome da Sala:</label>
-                    {# Usaremos um input simples, a validação será via AJAX/View #}
                     <input type="text" id="modal_room_name" name="name" class="form-control" placeholder="Nome da Nova Sala" required>
-                     <div id="modal-name-error" class="modal-error"></div> {# Para erros de nome #}
+                     <div id="modal-name-error" class="modal-error"></div>
                 </div>
-    
                 <div class="form-group">
                     <label for="modal_num_islands">Número de Ilhas:</label>
-                    <input type="number" id="modal_num_islands" name="num_islands" min="1" value="1" required class="form-control" oninput="updateModalIslandInputs()"> {# Mudar onchange para oninput para resposta mais rápida #}
+                    <input type="number" id="modal_num_islands" name="num_islands" min="1" value="1" required class="form-control" oninput="updateModalIslandInputs()">
                 </div>
-    
-                <div id="modal-island-details">
-                    <!-- Inputs para workstations por ilha serão adicionados aqui pelo JS -->
-                </div>
-                 <div id="modal-counts-error" class="modal-error"></div> {# Para erros gerais de contagem #}
-    
+                <div id="modal-island-details"></div>
+                 <div id="modal-counts-error" class="modal-error"></div>
                 <button type="button" onclick="submitAddRoomAjax()" class="submit-btn modal-submit-btn">Criar Sala</button>
             </form>
-             <div id="modal-general-error" class="modal-error" style="margin-top: 15px;"></div> {# Para erros gerais do AJAX #}
+             <div id="modal-general-error" class="modal-error" style="margin-top: 15px;"></div>
         </div>
     </div>
-    
-    <!-- Modal Remover Sala (Lista) -->
+
+    <!-- Modal Remover Sala (Inalterado) -->
     <div id="removeRoomModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('removeRoomModal')">&times;</span>
             <h2>Remover Sala Existente</h2>
             <div id="remove-room-list-container">
-                <!-- Lista de salas será carregada aqui via AJAX -->
                 <p>Carregando lista de salas...</p>
             </div>
-             <div id="remove-room-error" class="modal-error" style="margin-top: 15px;"></div> {# Para erros gerais do AJAX de remoção #}
+             <div id="remove-room-error" class="modal-error" style="margin-top: 15px;"></div>
         </div>
     </div>
 

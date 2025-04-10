@@ -5,48 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visão do Escritório</title>
     <style>
-        /* --- Estilos Gerais --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
+            background-color: #f5f7fa; /* Default light background */
             margin: 0;
-            padding: 10px;
-            color: #2c3e50;
+            padding: 10px; /* Reduced */
+            color: #2c3e50; /* Default text color */
         }
-        body.dark-theme {
+        body.dark-theme { /* Apply dark theme directly to body if class is present */
              background-color: #121212;
              color: #e0e0e0;
         }
         .office-container {
-            max-width: 1200px;
-            margin: 20px auto;
+            max-width: 1200px; /* Aumentado para mais espaço */
+            margin: 20px auto; /* Adicionado margin top/bottom */
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 20px;
-            position: relative; /* Para posicionar a legenda */
+            padding: 20px; /* Aumentado padding */
+            overflow: hidden; /* Contém floats ou elementos posicionados */
+            position: relative; /* Para legenda */
         }
         h1 {
             color: #2c3e50;
             text-align: center;
             margin-bottom: 25px;
         }
-        /* --- Estilos para Salas e Ilhas --- */
-        .room-section {
-            margin-bottom: 30px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #fff;
+        /* --- Estrutura Slider de Salas --- */
+        .room-slider-area {
+            margin-bottom: 30px; /* Espaço abaixo do slider de salas */
         }
-        .room-header {
-            font-size: 1.6em;
-            color: #3498db;
+        .room-tabs {
+            display: flex;
+            flex-wrap: wrap; /* Permite que as abas quebrem linha se necessário */
+            gap: 5px; /* Espaço entre abas */
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 2px solid #eee;
         }
-         .island-section {
+        .room-tab-btn {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            color: #555;
+            border-radius: 4px 4px 0 0; /* Cantos arredondados no topo */
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            border-bottom: none; /* Remove borda inferior padrão */
+        }
+        .room-tab-btn:hover {
+            background-color: #e0e0e0;
+        }
+        .room-tab-btn.active {
+            background-color: #fff; /* Fundo da aba ativa (combina com fundo do conteúdo) */
+            border-color: #eee; /* Borda coincide com a linha abaixo das abas */
+            border-bottom: 2px solid #fff; /* 'Corta' a linha abaixo da aba ativa */
+            color: #3498db; /* Cor da aba ativa */
+            position: relative;
+            top: 2px; /* Alinha com a borda inferior */
+            font-weight: bold;
+        }
+        .room-content-container {
+           position: relative;
+            overflow: hidden;
+           width: 100%;
+        }
+        .room-content-wrapper {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        .room-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        /* --- Fim Estrutura Slider de Salas --- */
+
+        .island-section {
             margin-top: 15px;
             margin-bottom: 15px;
             padding-left: 10px;
@@ -56,15 +92,17 @@
              color: #5dade2;
              margin-bottom: 10px;
         }
-        /* --- Estilos Workstation (Visão Pública) --- */
-         .workstations-container {
+        .workstations-columns-container {
             display: flex;
             gap: 15px;
-            flex-wrap: wrap;
-            padding: 10px 0;
-            width: 100%;
-            box-sizing: border-box;
+            justify-content: center;
         }
+        .workstation-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        /* Workstation para Visão Pública */
         .workstation {
             background: white;
             border-radius: 6px;
@@ -72,16 +110,16 @@
             padding: 10px;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Centraliza conteúdo verticalmente */
-            align-items: center; /* Centraliza conteúdo horizontalmente */
+            justify-content: center;
+            align-items: center;
             height: 85px; /* Ajustado */
             width: 180px; /* Ajustado */
             box-sizing: border-box;
             position: relative;
             border: 1px solid #e0e0e0;
-            text-align: center; /* Centraliza texto */
+            text-align: center;
         }
-         .workstation-number { /* ID da Workstation */
+        .workstation-number {
             position: absolute;
             top: 5px;
             right: 8px;
@@ -89,61 +127,101 @@
             font-size: 0.8em;
             font-weight: 600;
         }
-         .employee-name {
+        .employee-name {
             font-weight: 600;
-            font-size: 0.95em; /* Maior na view pública */
+            font-size: 0.95em;
             margin-bottom: 3px;
             color: #2c3e50;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 90%; /* Evita que nome grande empurre status */
+            max-width: 90%;
         }
-         .detail { /* Para mostrar info extra se necessário */
+        .detail { 
             font-size: 0.8em;
             color: #7f8c8d;
             margin-top: 2px;
         }
-        /* --- Estilos Status (Visão Pública) --- */
         .status-container {
             position: absolute;
             bottom: 8px;
             right: 8px;
-            width: 20px; /* Tamanho do círculo */
+            width: 20px;
             height: 20px;
         }
-        .status-indicator { /* Renomeado de status-btn */
+        .status-indicator { /* Indicador Visual */
             width: 100%;
             height: 100%;
             border-radius: 50%;
             border: 2px solid white;
             box-shadow: 0 1px 4px rgba(0,0,0,0.2);
         }
-        .status-occupied { background-color: #2ecc71; } /* Verde */
-        .status-unoccupied { background-color: #f39c12; } /* Laranja */
-        .status-issue { background-color: #e74c3c; } /* Vermelho */
+        .status-occupied { background-color: #2ecc71; }
+        .status-unoccupied { background-color: #f39c12; }
+        .status-issue { background-color: #e74c3c; }
+        /* --- Fim Workstation Pública --- */
 
-        /* --- Estilos Legenda (Mantido) --- */
+        /* --- Estilos do Slider de Ilhas --- */
+        .slider-area {
+            position: relative;
+            padding: 0 50px;
+            margin-top: 15px;
+        }
+        .island-slider-container {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            min-height: 300px;
+        }
+        .island-slider-wrapper {
+            display: flex;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+            transform: translateX(0%);
+        }
+        .island-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .slider-btn.side-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            background-color: #5dade2;
+            color: white;
+            border: none;
+            padding: 15px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.2em;
+            line-height: 1;
+            transition: background-color 0.2s;
+        }
+        .slider-btn.side-btn.prev { left: 10px; }
+        .slider-btn.side-btn.next { right: 10px; }
+        .slider-btn.side-btn:hover { background-color: #3498db; }
+        
+        /* --- Estilos Legenda --- */
         .status-legend {
              position: absolute;
-             top: 20px; /* Ajustado */
-             right: 20px; /* Ajustado */
-             background-color: rgba(255, 255, 255, 0.95); /* Mais opaco */
-             padding: 12px 18px; /* Ajustado */
+             top: 20px;
+             right: 20px;
+             background-color: rgba(255, 255, 255, 0.95);
+             padding: 12px 18px;
              border-radius: 8px;
              box-shadow: 0 2px 10px rgba(0,0,0,0.1);
              z-index: 50;
              font-size: 0.9em;
-         }
-         .legend-item {
-             display: flex;
-             align-items: center;
-             margin-bottom: 6px;
-         }
-         .legend-item:last-child {
-             margin-bottom: 0;
-         }
-         .legend-color {
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .legend-item:last-child { margin-bottom: 0; }
+        .legend-color {
              width: 16px;
              height: 16px;
              border-radius: 50%;
@@ -151,124 +229,221 @@
              border: 1px solid #ccc;
          }
 
-        /* --- Dark Theme Overrides --- */
+    </style>
+    <style> /* Dark Theme Overrides */
         .dark-theme body { background-color: #121212; color: #e0e0e0; }
         .dark-theme .office-container { background: #1e1e1e; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
         .dark-theme h1 { color: #e0e0e0; }
-        .dark-theme .room-section { background-color: #2a2a2a; border-color: #444; }
-        .dark-theme .room-header { color: #5dade2; border-bottom-color: #444; }
+        /* Dark Theme Slider Salas */
+        .dark-theme .room-tabs { border-bottom-color: #444; }
+        .dark-theme .room-tab-btn { background-color: #2a2a2a; border-color: #555; color: #bbb; }
+        .dark-theme .room-tab-btn:hover { background-color: #383838; }
+        .dark-theme .room-tab-btn.active { background-color: #1e1e1e; border-color: #444; border-bottom-color: #1e1e1e; color: #5dade2; }
+        /* Dark Theme Ilhas/Workstations */
         .dark-theme .island-header { color: #7cc0f0; }
         .dark-theme .workstation { background: #2d2d2d; border-color: #444; }
         .dark-theme .employee-name { color: #e0e0e0; }
         .dark-theme .workstation-number, .dark-theme .detail { color: #999; }
         .dark-theme .status-indicator { border-color: #2d2d2d; }
+        /* Dark Theme Sliders Ilhas */
+        .dark-theme .slider-btn.side-btn { background-color: #2980b9; color: #e0e0e0; }
+        .dark-theme .slider-btn.side-btn:hover { background-color: #1f618d; }
+         /* Dark Theme Legenda */
         .dark-theme .status-legend { background-color: rgba(40, 40, 40, 0.95); box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
         .dark-theme .legend-color { border-color: #555; }
-
-        /* Adicionar ao CSS principal (em ambos os arquivos) */
-        .workstations-columns-container {
-            display: flex; /* Organiza as colunas lado a lado */
-            gap: 15px; /* Espaço entre as colunas */
-            justify-content: center; /* Adicionado para centralizar as colunas */
-        }
-        .workstation-column {
-            display: flex;
-            flex-direction: column; /* Organiza workstations na coluna */
-            gap: 10px; /* Espaço entre workstations na coluna */
-            /* A largura da coluna pode ser definida aqui ou ser implícita pela largura das workstations */
-        }
-         .workstation {
-            background: white;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center; /* Centraliza conteúdo verticalmente */
-            align-items: center; /* Centraliza conteúdo horizontalmente */
-            height: 85px; /* Ajustado */
-            width: 180px; /* Ajustado */
-            box-sizing: border-box;
-            position: relative;
-            border: 1px solid #e0e0e0;
-            text-align: center; /* Centraliza texto */
-        }
-
+        .dark-theme p { /* Garante que texto 'Nenhuma sala/ilha' seja claro */
+           color: #e0e0e0; 
+        } 
     </style>
 </head>
-<body class="dark-theme">
+<body>
     <div class="office-container">
         <h1>Visão do Escritório</h1>
 
         <!-- Legenda de Status -->
         <div class="status-legend">
             <div class="legend-item">
-                <div class="legend-color status-occupied"></div> Ocupada
+                <div class="legend-color status-occupied"></div>
+                <span>Ocupada</span>
             </div>
             <div class="legend-item">
-                <div class="legend-color status-unoccupied"></div> Vaga
+                <div class="legend-color status-unoccupied"></div>
+                <span>Vaga</span>
             </div>
             <div class="legend-item">
-                <div class="legend-color status-issue"></div> Manutenção
+                <div class="legend-color status-issue"></div>
+                <span>Manutenção</span>
             </div>
         </div>
 
         <!-- Estrutura Principal: Iterar sobre Salas, Ilhas e Workstations -->
         {% if rooms_data %}
-            {% for room in rooms_data %}
-            <div class="room-section">
-                <h2 class="room-header">{{ room.name }}</h2>
-
-                {% for island in room.islands.all %} {# Acessa as ilhas diretamente #}
-                <div class="island-section">
-                    <h3 class="island-header">Ilha {{ island.island_number }}</h3>
-                    <div class="workstations-columns-container"> {# Novo container #}
-                        {% for column in island.processed_columns %}
-                        <div class="workstation-column"> {# Classe para coluna #}
-                            {% for workstation in column %} {# Iterar sobre workstations na coluna #}
-                            <div class="workstation">
-                                <div class="workstation-number">{{ workstation.display_sequence }}</div>
-                                {% if workstation.status == 'OCCUPIED' and workstation.employee %}
-                                    <div class="employee-name">{{ workstation.employee.name }}</div>
-                                {% elif workstation.status == 'UNOCCUPIED' %}
-                                    <div class="employee-name" style="color: #aaa;"><em>Vaga</em></div>
-                                {% elif workstation.status == 'MAINTENANCE' %}
-                                     <div class="employee-name" style="color: #e74c3c;"><em>Manutenção</em></div>
-                                {% else %}
-                                     <div class="employee-name" style="color: #aaa;"><em>{{ workstation.get_status_display }}</em></div>
-                                {% endif %}
-                                <div class="status-container">
-                                    <div class="status-indicator {% if workstation.status == 'OCCUPIED' %}status-occupied {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied {% else %}status-issue {% endif %}%"></div>
-                                </div>
-                            </div>
-                            {% empty %}
-                                 <p style="visibility: hidden;">Coluna vazia</p>
-                            {% endfor %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                     {% if not island.processed_columns %} {# Mensagem se não houver workstations #}
-                         <p>Nenhuma workstation nesta ilha.</p>
-                     {% endif %}
+            <div class="room-slider-area">
+                <!-- Abas das Salas -->
+                <div class="room-tabs">
+                    {% for room in rooms_data %}
+                        <button type="button" class="room-tab-btn {% if forloop.first %}active{% endif %}" data-room-index="{{ forloop.counter0 }}">
+                            {{ room.name }}
+                        </button>
+                    {% endfor %}
                 </div>
-                {% empty %}
-                    <p>Nenhuma ilha nesta sala.</p>
-                {% endfor %}
-            </div>
-            {% endfor %}
+
+                <!-- Container do Conteúdo das Salas -->
+                <div class="room-content-container">
+                    <div class="room-content-wrapper">
+                        {% for room in rooms_data %}
+                        <div class="room-slide" data-room-id="{{ room.id }}">
+                            
+                            <!-- Slider de Ilhas -->
+                            <div class="slider-area">
+                                <button type="button" class="slider-btn side-btn prev" onclick="navigateIsland('{{ room.id }}', -1)" style="display: none;">&lt;</button>
+                                <div class="island-slider-container">
+                                    <div class="island-slider-wrapper">
+                                        {% for island in room.islands.all %}
+                                        <div class="island-section island-slide" data-index="{{ forloop.counter0 }}">
+                                            <h3 class="island-header">Ilha {{ island.island_number }}</h3>
+                                            <div class="workstations-columns-container">
+                                                {% for column in island.processed_columns %}
+                                                    <div class="workstation-column">
+                                                        {% for item in column %}
+                                                            {# VERSÃO PÚBLICA: item é o objeto workstation #}
+                                                            {% with workstation=item %}
+                                                                <div class="workstation">
+                                                                    <div class="workstation-number">{{ workstation.display_sequence }}</div>
+                                                                    <div class="employee-name">
+                                                                        {% if workstation.employee %}
+                                                                            {{ workstation.employee.name }}
+                                                                        {% else %}
+                                                                            Vaga
+                                                                        {% endif %}
+                                                                    </div>
+                                                                    {% if workstation.category %}<div class="detail">Cat: {{ workstation.category }}</div>{% endif %}
+                                                                    <div class="status-container">
+                                                                        <div class="status-indicator {% if workstation.status == 'OCCUPIED' %}status-occupied {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied {% else %}status-issue {% endif %}"></div>
+                                                                    </div>
+                                                                </div>
+                                                            {% endwith %}
+                                                        {% empty %}
+                                                            <p style="visibility: hidden;">Coluna vazia</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% if not island.processed_columns %}
+                                                <p>Nenhuma workstation nesta ilha.</p>
+                                            {% endif %}
+                                        </div> {# Fim island-slide #}
+                                        {% empty %}
+                                            <div class="island-section island-slide"><p>Nenhuma ilha nesta sala.</p></div>
+                                        {% endfor %}
+                                    </div> {# Fim island-slider-wrapper #}
+                                </div> {# Fim island-slider-container #}
+                                <button type="button" class="slider-btn side-btn next" onclick="navigateIsland('{{ room.id }}', 1)" {% if room.islands.all|length <= 1 %}style="display: none;"{% endif %}>&gt;</button>
+                            </div> {# Fim slider-area (ilhas) #}
+                        </div> {# Fim room-slide #}
+                        {% endfor %}
+                    </div> {# Fim room-content-wrapper #}
+                </div> {# Fim room-content-container #}
+            </div> {# Fim room-slider-area #}
         {% else %}
             <p style="text-align: center; margin-top: 30px;">Nenhuma sala cadastrada ainda.</p>
         {% endif %}
-
     </div>
 
-    {# Script de atualização automática (se existir, pode ser mantido) #}
     <script>
-        // Se houver script para refresh automático, mantenha-o aqui.
-        // Exemplo:
-        // setTimeout(() => {
-        //     window.location.reload();
-        // }, 30000); // Recarrega a cada 30 segundos
+        // Apenas a lógica dos sliders é necessária aqui
+
+        // --- Lógica do Slider de Ilhas (Copiada de admin_office) ---
+        const activeIslandIndex = {}; 
+
+        function initializeIslandSliders() {
+            document.querySelectorAll('.room-slide').forEach(roomSlide => { 
+                const roomId = roomSlide.dataset.roomId;
+                if (roomId) {
+                    activeIslandIndex[roomId] = 0;
+                    const wrapper = roomSlide.querySelector('.island-slider-wrapper');
+                    const slides = roomSlide.querySelectorAll('.island-slide');
+                    const prevBtn = roomSlide.querySelector('.slider-btn.side-btn.prev');
+                    const nextBtn = roomSlide.querySelector('.slider-btn.side-btn.next');
+                    const numSlides = slides.length;
+
+                    if (wrapper) wrapper.style.transform = 'translateX(0%)';
+                    if (prevBtn) prevBtn.style.display = 'none';
+                    if (nextBtn) nextBtn.style.display = (numSlides <= 1) ? 'none' : 'inline-block'; 
+                }
+            });
+        }
+
+        function navigateIsland(roomId, direction) {
+            const roomSlide = document.querySelector(`.room-slide[data-room-id="${roomId}"]`); 
+            if (!roomSlide) return;
+
+            const wrapper = roomSlide.querySelector('.island-slider-wrapper');
+            const slides = roomSlide.querySelectorAll('.island-slide');
+            const prevBtn = roomSlide.querySelector('.slider-btn.side-btn.prev');
+            const nextBtn = roomSlide.querySelector('.slider-btn.side-btn.next');
+            const numSlides = slides.length;
+
+            if (numSlides <= 1 || !wrapper) return;
+
+            const currentActiveIndex = activeIslandIndex[roomId];
+            let nextIndex = currentActiveIndex + direction;
+
+            if (nextIndex < 0 || nextIndex >= numSlides) return;
+
+            const translateXValue = - (nextIndex * 100);
+            wrapper.style.transform = `translateX(${translateXValue}%)`;
+            activeIslandIndex[roomId] = nextIndex;
+
+            if (prevBtn) prevBtn.style.display = (nextIndex === 0) ? 'none' : 'inline-block'; 
+            if (nextBtn) nextBtn.style.display = (nextIndex === numSlides - 1) ? 'none' : 'inline-block'; 
+        }
+
+        // --- Lógica do Slider de Salas (Copiada de admin_office) ---
+        let activeRoomIndex = 0; 
+        const roomContentWrapper = document.querySelector('.room-content-wrapper');
+        const roomTabs = document.querySelectorAll('.room-tab-btn');
+
+        function initializeRoomSlider() {
+            if (!roomContentWrapper || roomTabs.length === 0) return; 
+
+            roomContentWrapper.style.transform = 'translateX(0%)';
+
+            roomTabs.forEach((tab, index) => {
+                tab.classList.toggle('active', index === 0);
+                tab.addEventListener('click', () => {
+                    navigateToRoom(index);
+                });
+            });
+        }
+
+        function navigateToRoom(targetIndex) {
+            if (!roomContentWrapper || targetIndex < 0 || targetIndex >= roomTabs.length || targetIndex === activeRoomIndex) {
+                return; 
+            }
+
+            const translateXValue = - (targetIndex * 100);
+            roomContentWrapper.style.transform = `translateX(${translateXValue}%)`;
+
+            roomTabs[activeRoomIndex].classList.remove('active');
+            roomTabs[targetIndex].classList.add('active');
+            activeRoomIndex = targetIndex;
+        }
+
+        // Inicializa sliders na carga da página
+        document.addEventListener('DOMContentLoaded', () => {
+             initializeRoomSlider();   
+             initializeIslandSliders(); 
+             // Adiciona aqui a lógica para aplicar o tema do localStorage, caso não esteja no base.html
+            const savedTheme = localStorage.getItem('theme') || 'light'; // Pega tema salvo ou default
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                // Se tiver botão de toggle nesta página (não tem), atualizaria ele aqui
+            } else {
+                 document.body.classList.remove('dark-theme'); // Garante que tema claro seja aplicado
+            }
+        });
+
     </script>
 
 </body>

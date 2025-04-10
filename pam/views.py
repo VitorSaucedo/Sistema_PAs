@@ -2,12 +2,14 @@ from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
 from .models import Workstation, Employee, Room, Island
-from .forms import WorkstationForm, RoomForm
+from .forms import WorkstationForm, RoomForm, EmployeeForm
 from django.http import JsonResponse
 from django.db.models import Prefetch
 from django.views.decorators.http import require_POST
 from django.http import Http404 # Import Http404
 import math # Add math import
+from django.db.models.query import Prefetch
+from django.db import transaction
 
 def is_admin(user):
     return user.is_authenticated and user.is_staff
@@ -99,69 +101,126 @@ def office_view(request):
 @user_passes_test(is_admin)
 def admin_office_view(request):
     """Visualização administrativa do escritório, organizada por Salas e Ilhas"""
-    error_message = None # Keep error message handling
 
-    # --- POST Logic (Handling Workstation Updates) ---
-    # This logic remains largely the same, targeting individual workstations
     if request.method == 'POST':
-        modified_pa_id = request.POST.get('modified_pa')
-        if modified_pa_id:
-            try:
-                # Use select_related for efficiency when getting workstation
-                workstation = Workstation.objects.select_related('employee', 'island', 'island__room').get(id=modified_pa_id)
-                form = WorkstationForm(request.POST, instance=workstation, prefix=modified_pa_id)
-                if form.is_valid():
-                    # Save form first (might update employee)
-                    workstation = form.save(commit=False) # Don't commit yet
-                    
-                    # Get submitted status
-                    submitted_status = request.POST.get(f'{modified_pa_id}-status')
-                    
-                    # Apply status logic
-                    if submitted_status == 'UNOCCUPIED':
-                        workstation.employee = None
-                        workstation.status = 'UNOCCUPIED'
-                    elif submitted_status == 'MAINTENANCE':
-                        workstation.status = 'MAINTENANCE'
-                    elif submitted_status == 'OCCUPIED':
-                         # Ensure employee is assigned if status is OCCUPIED
-                        if not workstation.employee:
-                             raise ValueError("Não é possível definir o status como 'Ocupado' sem um funcionário atribuído.")
-                        workstation.status = 'OCCUPIED'
-                    elif submitted_status in dict(Workstation.STATUS_CHOICES): # Allow other valid statuses
-                        workstation.status = submitted_status
-                    else:
-                        # Keep original status if submitted is invalid? Or raise error?
-                        # Let's keep original for now if invalid status submitted
-                        pass # Keep workstation.status as is
+        modified_workstations = []
+        errors_found = []
+        workstation_ids_in_post = set()
 
-                    # Save the final state
-                    # Specify fields to update for efficiency and avoid accidental overwrites
-                    update_fields = ['employee', 'status']
-                    # Include equipment fields if they are editable via the form
-                    # equipment_fields = ['monitor', 'keyboard', 'mouse', 'headset']
-                    # update_fields.extend(equipment_fields)
-                    workstation.save(update_fields=update_fields)
-                    messages.success(request, 'Alterações salvas com sucesso!')
+        # 1. Coletar todos os IDs de Workstation presentes no POST
+        for key in request.POST:
+            if '-' in key:
+                try:
+                    ws_id_str = key.split('-')[0]
+                    ws_id = int(ws_id_str)
+                    workstation_ids_in_post.add(ws_id)
+                except (ValueError, IndexError):
+                    continue # Ignora chaves mal formatadas
 
-                else: # Form is invalid
-                    error_message = 'Erro ao salvar: Dados inválidos no formulário.'
-                    # Log detailed errors (optional but helpful)
-                    print(f"Form errors for PA {modified_pa_id}: {form.errors.as_json()}")
-            except Workstation.DoesNotExist:
-                error_message = 'Erro: Estação de trabalho não encontrada.'
-            except ValueError as ve: # Catch specific error for OCCUPIED without employee
-                 error_message = f'Erro ao salvar: {str(ve)}'
-            except Exception as e:
-                error_message = f'Erro inesperado ao salvar alterações: {str(e)}'
-                print(f"Unexpected error saving workstation {modified_pa_id}: {str(e)}") # Log unexpected errors
+        if not workstation_ids_in_post:
+            messages.warning(request, "Nenhuma alteração detectada.")
+            return redirect('pam:admin_office_view')
+
+        # 2. Buscar todas as workstations relevantes do banco de dados de uma vez
+        workstations_to_check = Workstation.objects.select_related('employee').filter(id__in=workstation_ids_in_post)
+        workstations_dict = {ws.id: ws for ws in workstations_to_check}
+
+        # 3. Iterar sobre os IDs e verificar modificações
+        try:
+            with transaction.atomic(): # Garante que todas as alterações sejam salvas ou nenhuma
+                for ws_id in workstation_ids_in_post:
+                    if ws_id not in workstations_dict:
+                        errors_found.append(f"Erro: Workstation com ID {ws_id} não encontrada no banco.")
+                        continue # Pula para o próximo ID
+                    
+                    workstation = workstations_dict[ws_id]
+                    original_status = workstation.status
+                    original_employee = workstation.employee
+                    fields_to_update = []
+
+                    # Verificar Employee (ANTES de verificar/aplicar status)
+                    submitted_employee_id = request.POST.get(f'{ws_id}-employee')
+                    selected_employee = None
+                    employee_changed = False
+                    if submitted_employee_id is not None: # Verifica se o campo foi enviado
+                        if submitted_employee_id == '' and original_employee is not None: # Desatribuindo
+                            workstation.employee = None
+                            employee_changed = True
+                        elif submitted_employee_id:
+                            try:
+                                submitted_employee_id_int = int(submitted_employee_id)
+                                if original_employee is None or original_employee.id != submitted_employee_id_int:
+                                    # Busca o funcionário SE houver mudança ou for nova atribuição
+                                    # Idealmente, ter um cache de funcionários aqui seria mais eficiente se muitos forem alterados
+                                    selected_employee = Employee.objects.get(pk=submitted_employee_id_int)
+                                    workstation.employee = selected_employee
+                                    employee_changed = True
+                                else:
+                                     # ID enviado é o mesmo que já estava, não faz nada
+                                     pass
+                            except (ValueError, Employee.DoesNotExist):
+                                errors_found.append(f"Erro: Funcionário com ID '{submitted_employee_id}' inválido para PA {ws_id}.")
+                                continue # Pula esta PA
+                    
+                    # Se o funcionário foi alterado, marca para salvar
+                    if employee_changed:
+                        fields_to_update.append('employee')
+
+                    # Verificar Status
+                    submitted_status = request.POST.get(f'{ws_id}-status')
+                    if submitted_status and submitted_status != original_status:
+                        if submitted_status in dict(Workstation.STATUS_CHOICES):
+                            # Aplica o status ANTES da lógica condicional abaixo
+                            workstation.status = submitted_status
+                            fields_to_update.append('status')
+                        else:
+                             errors_found.append(f"Erro: Status '{submitted_status}' inválido para PA {ws_id}.")
+                             continue # Não processa mais esta PA se status for inválido
+
+                    # Aplicar lógica de status (APÓS processar employee e status submetidos)
+                    if workstation.status == 'UNOCCUPIED' and workstation.employee is not None:
+                        # Se status foi definido como Vaga, mas ainda temos um funcionário (vindo do original ou selecionado)
+                        # Força a desassociação do funcionário.
+                        workstation.employee = None # Desassocia funcionário
+                        if 'employee' not in fields_to_update: fields_to_update.append('employee')
+
+                    # Não precisamos mais da verificação explícita `elif workstation.status == 'OCCUPIED' and workstation.employee is None:`
+                    # porque se o status for OCCUPIED e o employee não foi selecionado/mantido,
+                    # a verificação final antes do save() pegará isso.
+
+                    # 4. Salvar se houver alterações
+                    if fields_to_update:
+                        # Verifica consistência final antes de salvar
+                        if workstation.status == 'OCCUPIED' and workstation.employee is None:
+                             errors_found.append(f"Erro Crítico: Tentativa de salvar PA {ws_id} como 'Ocupada' sem funcionário.")
+                             # Reverte o status para o original para evitar inconsistência?
+                             # workstation.status = original_status
+                             # if 'status' in fields_to_update: fields_to_update.remove('status')
+                             # if 'employee' in fields_to_update: fields_to_update.remove('employee')
+                             # fields_to_update = [] # Não salva nada desta PA
+                        elif workstation.status == 'UNOCCUPIED' and workstation.employee is not None:
+                            # Deveria ter sido corrigido acima, mas como segurança
+                            errors_found.append(f"Erro Crítico: Tentativa de salvar PA {ws_id} como 'Vaga' com funcionário.")
+                        else:
+                            workstation.save(update_fields=fields_to_update)
+                            modified_workstations.append(ws_id)
+
+        except Exception as e:
+            messages.error(request, f"Erro inesperado durante o processamento: {e}")
+            print(f"Erro inesperado salvando multiplas workstations: {e}") # Log
+            return redirect('pam:admin_office_view')
+
+        # 5. Feedback ao usuário
+        if modified_workstations and not errors_found:
+            messages.success(request, f"Alterações salvas com sucesso para {len(modified_workstations)} workstation(s)!")
+        elif modified_workstations:
+             messages.warning(request, f"Alterações salvas para {len(modified_workstations)} workstation(s), mas ocorreram erros em outras: {'; '.join(errors_found)}")
+        elif errors_found:
+            messages.error(request, f"Nenhuma alteração salva. Erros encontrados: {'; '.join(errors_found)}")
         else:
-            error_message = 'Nenhuma estação de trabalho foi identificada para modificação.'
-        
-        # Redirect after POST processing
-        if error_message:
-            messages.error(request, error_message)
-        return redirect('pam:admin_office_view') # Always redirect after POST
+             messages.info(request, "Nenhuma alteração foi realizada.") # Caso não haja fields_to_update
+
+        return redirect('pam:admin_office_view')
 
     # --- GET Logic (Preparing Data for Display) ---
     rooms_data = Room.objects.prefetch_related(
@@ -213,60 +272,108 @@ def add_room_ajax_view(request):
 
     room_form = RoomForm(request.POST)
     num_islands_str = request.POST.get('num_islands', '0')
-    workstations_per_island_str = [
-        request.POST.get(f'island_{i}_workstations', '0')
-        for i in range(1, int(num_islands_str) + 1) # Cuidado com conversão aqui
-    ]
-
+    
     errors = {}
+    num_islands = 0 # Inicializa
     try:
         num_islands = int(num_islands_str)
         if num_islands <= 0:
              errors['counts'] = ['Número de ilhas deve ser positivo.']
+    except ValueError:
+         errors['counts'] = ['Número de ilhas inválido.']
 
-        workstations_per_island = []
+    # *** CORREÇÃO: Ler workstations e categorias usando os nomes indexados ***
+    workstations_per_island_str = []
+    island_categories_str = []
+    if not errors: # Só tenta ler se num_islands for válido
+        for i in range(num_islands):
+            ws_count_str = request.POST.get(f'island_{i+1}_workstations', '0') # Lê island_1_workstations, etc.
+            category_str = request.POST.get(f'island_{i+1}_category', '')      # Lê island_1_category, etc.
+            workstations_per_island_str.append(ws_count_str)
+            island_categories_str.append(category_str)
+
+    # A verificação de inconsistência não é mais necessária da mesma forma,
+    # pois o loop garante que temos a quantidade certa de itens se num_islands for válido.
+
+    # Validação dos valores lidos
+    workstations_per_island = []
+    if not errors:
         for count_str in workstations_per_island_str:
-            count = int(count_str)
-            if count <= 0:
-                 errors.setdefault('counts', []).append('Número de workstations por ilha deve ser positivo.')
-            workstations_per_island.append(count)
+            try:
+                count = int(count_str)
+                if count <= 0:
+                    errors.setdefault('counts', []).append('Número de workstations por ilha deve ser positivo.')
+                    break # Para no primeiro erro de contagem
+                workstations_per_island.append(count)
+            except ValueError:
+                errors.setdefault('counts', []).append('Número inválido de workstations por ilha fornecido.')
+                break # Para no primeiro erro de valor
 
-        if not errors and room_form.is_valid():
-            room = room_form.save() # Salva a sala
+    if not errors and room_form.is_valid():
+        try:
+            with transaction.atomic(): # Garante que tudo seja salvo ou nada
+                room = room_form.save() # Salva a sala
 
-            # Cria ilhas e workstations
-            for i in range(num_islands):
-                island_num = i + 1
-                num_workstations = workstations_per_island[i]
-                island = Island.objects.create(
-                    room=room,
-                    island_number=island_num
-                )
-                for j in range(num_workstations):
-                    # Lógica de criação da workstation (manter simples por agora)
-                    Workstation.objects.create(
-                        island=island,
-                        status='UNOCCUPIED',
-                         # Definir sequence/category aqui se necessário
-                         # sequence = j + 1,
-                         # category = 'DEFAULT',
-                    )
-            return JsonResponse({'success': True}) # Sucesso!
+                # Cria ilhas e workstations
+                for i in range(num_islands):
+                    island_num = i + 1
+                    # Valida se temos dados suficientes antes de tentar acessar o índice
+                    if i < len(workstations_per_island) and i < len(island_categories_str):
+                        num_workstations = workstations_per_island[i]
+                        island_category = island_categories_str[i] # *** NOVO: Pega a categoria da ilha ***
 
-        else:
-            # Coleta erros do RoomForm
-            for field, field_errors in room_form.errors.items():
-                 errors[field] = field_errors
-            # Adiciona outros erros já coletados
-            return JsonResponse({'success': False, 'errors': errors})
+                        island = Island.objects.create(
+                            room=room,
+                            island_number=island_num,
+                            category=island_category # *** NOVO: Salva a categoria na ilha ***
+                        )
+                        for j in range(num_workstations):
+                            # Lógica de criação da workstation (usando a categoria da ilha)
+                            Workstation.objects.create(
+                                island=island,
+                                status='UNOCCUPIED',
+                                sequence = j + 1, # Definindo a sequência
+                                category=island_category, # *** NOVO: Usa a categoria da ilha ***
+                            )
+                    else:
+                        # Tratar erro: Inconsistência nos dados coletados
+                        # Isso não deveria acontecer se as leituras anteriores estiverem corretas
+                        # mas é uma salvaguarda.
+                        errors['__all__'] = ['Erro interno: Inconsistência nos dados das ilhas.']
+                        # Força a saída do loop e falha da transação
+                        raise transaction.TransactionManagementError("Dados de ilha inconsistentes.")
 
-    except ValueError: # Erro na conversão de números
-        errors.setdefault('counts', []).append('Valores inválidos para número de ilhas ou workstations.')
+                return JsonResponse({'success': True}) # Sucesso!
+
+        except ValueError: # Erro na conversão de números DENTRO da lógica de criação (se houver)
+            errors.setdefault('counts', []).append('Valores inválidos detectados durante a criação.')
+            # Não retorna aqui, deixa cair para o retorno de erro geral abaixo
+        except transaction.TransactionManagementError as tme:
+             # O erro já foi adicionado a errors['__all__']
+             print(f"Erro de transação: {tme}")
+             # Deixa cair para o retorno de erro geral
+             pass
+        except Exception as e: # Erro inesperado no banco ou outro DENTRO da transação
+            print(f"Erro inesperado em add_room_ajax_view durante a transação: {e}") # Log do erro
+            errors['__all__'] = ['Ocorreu um erro interno ao salvar a sala e suas estruturas.']
+            # Deixa cair para o retorno de erro geral
+
+    # --- Bloco de retorno de erro (agora fora do try/except principal da lógica de criação) ---
+    # Coleta erros do RoomForm SE o if principal falhou E room_form não for válido
+    if not room_form.is_valid():
+        for field, field_errors in room_form.errors.items():
+            # Evita sobrescrever erros já detectados
+            errors.setdefault(field, []).extend(field_errors)
+
+    # Retorna JSON de erro se houver QUALQUER erro detectado
+    if errors:
         return JsonResponse({'success': False, 'errors': errors})
-    except Exception as e: # Erro inesperado no banco ou outro
-        print(f"Erro inesperado em add_room_ajax_view: {e}") # Log do erro
-        errors['__all__'] = ['Ocorreu um erro interno ao salvar a sala.']
-        return JsonResponse({'success': False, 'errors': errors}, status=500)
+
+    # Se chegou aqui sem erros, algo muito estranho aconteceu.
+    # Adiciona um erro genérico por segurança.
+    print("Alerta: A view add_room_ajax chegou ao final sem sucesso ou erro definido.")
+    errors['__all__'] = ['Ocorreu uma falha inesperada no processamento.']
+    return JsonResponse({'success': False, 'errors': errors}, status=500)
 
 # --- Views AJAX para Remoção ---
 
@@ -300,3 +407,55 @@ def remove_room_ajax_view(request, room_id):
     except Exception as e:
         print(f"Erro ao remover sala {room_id} via AJAX: {e}")
         return JsonResponse({'success': False, 'error': 'Erro interno ao remover a sala.'}, status=500)
+
+# --- View para Gerenciar Funcionários ---
+
+@user_passes_test(is_admin)
+def manage_employees_view(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'add':
+            form = EmployeeForm(request.POST)
+            if form.is_valid():
+                try:
+                    form.save()
+                    messages.success(request, "Funcionário adicionado com sucesso!")
+                    return redirect('pam:manage_employees') # Redireciona para limpar o POST
+                except Exception as e:
+                    # Captura erros de integridade (ex: CPF/Email duplicado)
+                    messages.error(request, f"Erro ao adicionar funcionário: {e}")
+                    # O form com os erros será passado para o contexto abaixo
+            else:
+                messages.error(request, "Erro de validação. Verifique os campos.")
+                # O form inválido será passado para o contexto abaixo
+
+        elif action == 'remove':
+            employee_id = request.POST.get('employee_id')
+            if employee_id:
+                try:
+                    employee = get_object_or_404(Employee, pk=employee_id)
+                    employee_name = employee.name # Guarda nome para mensagem
+                    # Antes de deletar, desassociar de qualquer Workstation
+                    # Workstation.objects.filter(employee=employee).update(employee=None, status='UNOCCUPIED') # O SET_NULL já faz isso
+                    employee.delete()
+                    messages.success(request, f"Funcionário '{employee_name}' removido com sucesso!")
+                except Http404:
+                    messages.error(request, "Erro: Funcionário não encontrado.")
+                except Exception as e:
+                     messages.error(request, f"Erro ao remover funcionário: {e}")
+            else:
+                messages.error(request, "ID do funcionário não fornecido para remoção.")
+            return redirect('pam:manage_employees') # Redireciona após remover (ou tentar)
+
+    # Lógica GET (ou se o POST falhou a validação no 'add')
+    employees = Employee.objects.all().order_by('name')
+    # Se a requisição foi POST e o form falhou, usa o form com erros
+    # Senão, cria um form vazio para o GET
+    form_to_render = form if ('form' in locals() and request.method == 'POST' and action == 'add') else EmployeeForm()
+
+    context = {
+        'employees': employees,
+        'form': form_to_render,
+    }
+    return render(request, 'pam/manage_employees.html', context)

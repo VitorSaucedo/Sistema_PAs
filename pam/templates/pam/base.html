@@ -71,11 +71,26 @@
         .dark-theme .bg-light {
             background-color: #2d2d2d !important;
         }
+        /* Correção para placeholders no tema escuro */
+        .dark-theme .form-control::placeholder {
+            color: #aaa; /* Cinza mais claro */
+            opacity: 1; /* Garante visibilidade */
+        }
+        /* Correção para texto de parágrafos em cards no tema escuro */
+        .dark-theme .card-body p {
+             color: #e0e0e0; /* Cor padrão do texto escuro */
+        }
         .theme-toggle-container {
             position: fixed;
             bottom: 20px;
             right: 20px;
             z-index: 1000;
+        }
+        /* Estilo para cabeçalho de card no tema escuro */
+        .dark-theme .card-header {
+            background-color: #2d2d2d; /* Um pouco mais escuro que o corpo do card */
+            color: #e0e0e0; /* Cor padrão do texto escuro */
+            border-bottom: 1px solid #444; /* Garante a linha separadora */
         }
     </style>
 </head>
@@ -87,17 +102,17 @@
     </div>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'pam:home' %}">Sistema de PAs</a>
+            <a class="navbar-brand" href="{% url 'pam:office_view' %}">Sistema de PAs</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'pam:employee_list' %}">Funcionários</a>
+                        <a class="nav-link" href="{% url 'pam:manage_employees' %}">Funcionários</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'pam:workstation_list' %}">Estações de Trabalho</a>
+                        <a class="nav-link" href="{% url 'pam:admin_office_view' %}">Estações de Trabalho</a>
                     </li>
                 </ul>
             </div>

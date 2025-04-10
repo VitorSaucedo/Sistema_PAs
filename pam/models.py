@@ -12,6 +12,9 @@ class Employee(models.Model):
     ]
     
     name = models.CharField(max_length=100, verbose_name="Nome")
+    cpf = models.CharField(max_length=14, unique=True, verbose_name="CPF", validators=[MinLengthValidator(11)], help_text="Formato: 123.456.789-00 ou 12345678900")
+    email = models.EmailField(max_length=254, unique=True, null=True, blank=True, verbose_name="Email")
+    phone = models.CharField(max_length=15, verbose_name="Telefone", help_text="Formato: (XX) XXXXX-XXXX")
     sector = models.CharField(
         max_length=20,
         choices=SECTOR_CHOICES,
@@ -45,16 +48,16 @@ class Room(models.Model):
         return self.name
 
 class Island(models.Model):
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='islands', verbose_name="Sala")
-    island_number = models.PositiveIntegerField(verbose_name="Número da Ilha")
-    # We might not need 'number_of_workstations' here if Workstations link directly
+    room = models.ForeignKey(Room, related_name='islands', on_delete=models.CASCADE, verbose_name='Sala')
+    island_number = models.PositiveIntegerField(verbose_name='Número da Ilha')
+    category = models.CharField(max_length=50, blank=True, null=True, verbose_name='Categoria da Ilha')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "Ilha"
         verbose_name_plural = "Ilhas"
-        unique_together = [['room', 'island_number']] # Each island number must be unique within a room
+        unique_together = ('room', 'island_number')
         ordering = ['room', 'island_number']
 
     def __str__(self):

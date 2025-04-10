@@ -19,7 +19,6 @@ class Employee(models.Model):
         max_length=20,
         choices=SECTOR_CHOICES,
         verbose_name="Setor",
-        default='INSS'
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -136,20 +135,6 @@ class Workstation(models.Model):
                 else:
                     self.status = 'OCCUPIED'
         
-        # Atualiza o setor do funcionário baseado na categoria da workstation
-        if self.employee: # Removed hasattr check
-            # Mapeia categoria da workstation para setor do funcionário
-            sector_map = {
-                'INSS': 'INSS',
-                'SIAPE_LEO': 'SIAPE_LEO',
-                'SIAPE_DION': 'SIAPE_DION',
-                'ESTAGIO': 'ESTAGIO'
-            }
-            new_sector = sector_map.get(self.category, 'INSS') # Default to INSS if category not found
-            if self.employee.sector != new_sector:
-                self.employee.sector = new_sector
-                self.employee.save(update_fields=['sector'])
-                
         if not self.sequence and self.category:
             last = Workstation.objects.filter(
                 category=self.category

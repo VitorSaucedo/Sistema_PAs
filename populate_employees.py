@@ -25,57 +25,75 @@ def format_phone_number(digits):
          return f'({digits[:2]}) {digits[2:6]}-{digits[6:]}'
     return "".join(digits) # Retorna original se não tiver 10 ou 11
 
-def populate(N=10):
-    """Cria N funcionários fictícios."""
+def populate():
+    """Cria funcionários fictícios com base em contagens por categoria."""
     fake = Faker('pt_BR')
     created_count = 0
+    total_attempted = 0
 
-    print(f"Populando banco de dados com {N} funcionários...")
+    # Define as categorias e quantos funcionários criar para cada uma
+    categories_to_populate = {
+        "INSS": 10,
+        "Estágio": 8,
+        "SIAPE Dion": 12,
+        "SIAPE Leo": 10,
+    }
 
-    # Pega as opções válidas do modelo
-    sector_choices = [choice[0] for choice in Employee.SECTOR_CHOICES]
+    print("Populando banco de dados com funcionários...")
 
-    for _ in range(N):
-        try:
-            name = fake.name()
-            cpf = fake.cpf()
-            # Usar fake.unique para reduzir colisões iniciais, mas o try/except é a garantia
-            email = fake.unique.email()
-            # Gerar 10 ou 11 dígitos aleatórios para o telefone
-            phone_digits = ''.join([str(random.randint(0, 9)) for _ in range(random.choice([10, 11]))])
-            phone = format_phone_number(phone_digits)
-            sector = random.choice(sector_choices)
+    # Pega as opções válidas do modelo (para validação, se necessário, mas não para escolha aleatória)
+    # sector_choices = [choice[0] for choice in Employee.SECTOR_CHOICES]
 
-            Employee.objects.create(
-                name=name,
-                cpf=cpf,
-                email=email,
-                phone=phone,
-                sector=sector
-            )
-            created_count += 1
-            # Limpa o histórico do unique.email para permitir mais variedade se N for grande
-            # Isso pode aumentar a chance de IntegrityError, mas evita esgotar emails únicos rapidamente
-            if created_count % 100 == 0: 
-                fake.unique.clear()
+    for sector, count in categories_to_populate.items():
+        print(f"  Criando {count} funcionários para o setor: {sector}...")
+        sector_created_count = 0
+        attempts = 0
+        max_attempts = count * 2 # Tenta no máximo o dobro para evitar loop infinito com muitas colisões
 
-        except IntegrityError as e:
-            # Erro comum se CPF ou Email já existir
-            print(f"Aviso: Não foi possível criar funcionário (possível duplicata de CPF/Email): {e}")
-            # Limpa o unique.email se a falha foi por ele
-            if 'email' in str(e).lower():
-                 fake.unique.clear()
-            pass # Continua para o próximo
-        except Exception as e:
-             print(f"Erro inesperado ao criar funcionário: {e}")
-             pass
+        while sector_created_count < count and attempts < max_attempts:
+            total_attempted += 1
+            attempts += 1
+            try:
+                name = fake.name()
+                cpf = fake.cpf()
+                email = fake.unique.email() # Tenta gerar email único
+                phone_digits = ''.join([str(random.randint(0, 9)) for _ in range(random.choice([10, 11]))])
+                phone = format_phone_number(phone_digits)
+                # sector é definido pelo loop externo
 
-    print(f"População concluída. {created_count} funcionários criados.")
+                Employee.objects.create(
+                    name=name,
+                    cpf=cpf,
+                    email=email,
+                    phone=phone,
+                    sector=sector # Define o setor específico
+                )
+                created_count += 1
+                sector_created_count += 1
+                
+                # Limpa unique email com menos frequência, pois agora tentamos por setor
+                if created_count % 200 == 0:
+                    fake.unique.clear()
+
+            except IntegrityError as e:
+                print(f"  Aviso: Não foi possível criar funcionário para {sector} (possível duplicata): {e}")
+                if 'email' in str(e).lower():
+                    fake.unique.clear() # Limpa se o email for o problema
+                pass # Continua para a próxima tentativa
+            except Exception as e:
+                 print(f"  Erro inesperado ao criar funcionário para {sector}: {e}")
+                 pass
+        
+        if sector_created_count < count:
+             print(f"  Aviso: Foram criados apenas {sector_created_count} de {count} funcionários para {sector} após {max_attempts} tentativas.")
+
+    print(f"\nPopulação concluída. {created_count} funcionários criados no total (de {total_attempted} tentativas).")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Popula o banco de dados com funcionários fictícios.')
-    parser.add_argument('count', type=int, default=10, nargs='?',
-                        help='Número de funcionários a serem criados (padrão: 10)')
-    args = parser.parse_args()
-
-    populate(args.count) 
+    # Remove a lógica de argumentos, pois as contagens são fixas
+    # parser = argparse.ArgumentParser(description='Popula o banco de dados com funcionários fictícios.')
+    # parser.add_argument('count', type=int, default=10, nargs='?',
+    #                     help='Número de funcionários a serem criados (padrão: 10)')
+    # args = parser.parse_args()
+    # populate(args.count)
+    populate() 

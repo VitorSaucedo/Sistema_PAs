@@ -328,12 +328,28 @@ def add_room_ajax_view(request):
                             category=island_category # *** NOVO: Salva a categoria na ilha ***
                         )
                         for j in range(num_workstations):
-                            # Lógica de criação da workstation (usando a categoria da ilha)
+                            # --- NOVA LÓGICA PARA CATEGORIA DA WORKSTATION ---
+                            ws_category = island_category # Default: usa a categoria da ilha (do modal)
+
+                            # Verifica o nome da sala e o número da ilha para categorias específicas
+                            if room.name == "Sala 1":
+                                if island_num == 1:
+                                    ws_category = "INSS"
+                                elif island_num == 2:
+                                    ws_category = "Estágio"
+                            elif room.name == "Sala 2":
+                                if island_num == 1:
+                                    ws_category = "SIAPE Dion"
+                                elif island_num == 2:
+                                    ws_category = "SIAPE Leo"
+                            # --- FIM DA NOVA LÓGICA ---
+
+                            # Lógica de criação da workstation (usando a categoria definida)
                             Workstation.objects.create(
                                 island=island,
                                 status='UNOCCUPIED',
                                 sequence = j + 1, # Definindo a sequência
-                                category=island_category, # *** NOVO: Usa a categoria da ilha ***
+                                category=ws_category, # *** Usa a categoria definida pela nova lógica ***
                             )
                     else:
                         # Tratar erro: Inconsistência nos dados coletados

@@ -6,26 +6,40 @@ class WorkstationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Customize employee choices to show (Ocupado)
-        current_employee = self.instance.employee # Employee currently assigned to this specific workstation
-        
-        # Get IDs of all employees currently assigned to *any* workstation
+        # Personalizar as opções do campo 'employee'
+        current_instance = self.instance
+        current_employee_id = current_instance.employee.id if current_instance and current_instance.employee else None
+        workstation_category = current_instance.category if current_instance and current_instance.category else None
+
+        # Obter IDs de todos os funcionários atualmente alocados em *outras* workstations
         occupied_employee_ids = set(
             Workstation.objects.filter(employee__isnull=False)
-                             .exclude(pk=self.instance.pk) # Exclude the current workstation being edited
+                             .exclude(pk=current_instance.pk if current_instance else None) # Exclui a workstation atual
                              .values_list('employee_id', flat=True)
         )
 
-        choices = [('', '---------')] # Start with empty choice
+        choices = [('', '---------')] # Começa com a opção vazia
         
-        # Use select_related('workstation_set') might be too heavy, simple iteration is fine for moderate numbers
-        for emp in Employee.objects.order_by('name'):
-            label = emp.name
-            # Check if employee is occupied elsewhere OR if they are the current employee (to avoid showing occupied for self)
-            if emp.id in occupied_employee_ids:
-                 label = f"{emp.name} (Ocupado)"
-            
-            choices.append((emp.id, label))
+        # Busca todos os funcionários ordenados por nome
+        all_employees = Employee.objects.order_by('name') 
+
+        for emp in all_employees:
+            # --- NOVA LÓGICA DE FILTRO ---
+            # Verifica se o funcionário pertence ao setor da workstation OU se é o funcionário atual
+            include_employee = False
+            if workstation_category and emp.sector == workstation_category:
+                include_employee = True
+            elif emp.id == current_employee_id:
+                include_employee = True
+            # --- FIM DA NOVA LÓGICA DE FILTRO ---
+
+            if include_employee:
+                label = emp.name
+                # Adiciona '(Ocupado)' se o funcionário estiver em outra PA
+                if emp.id in occupied_employee_ids:
+                     label = f"{emp.name} (Ocupado)"
+                
+                choices.append((emp.id, label))
             
         self.fields['employee'].choices = choices
 

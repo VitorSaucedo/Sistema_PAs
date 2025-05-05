@@ -1,5 +1,6 @@
 from django import forms
-from .models import Workstation, Employee, Room # Import Room
+from django.contrib.auth.forms import AuthenticationForm
+from .models import Workstation, Employee, Room, Island
 
 class WorkstationForm(forms.ModelForm):
 
@@ -28,25 +29,31 @@ class WorkstationForm(forms.ModelForm):
             choices.append((emp.id, label))
             
         self.fields['employee'].choices = choices
+        
+        # Adiciona campos ocultos que serão usados para processamento
+        self.fields['room'] = forms.IntegerField(required=False, widget=forms.HiddenInput())
 
     class Meta:
         model = Workstation
-        # Note: 'employee' field is customized in __init__
-        fields = ['status', 'employee', 'monitor', 'keyboard', 'mouse', 'headset']
+        fields = ['employee', 'category', 'island', 'monitor', 'keyboard', 'mouse', 'mousepad', 'headset']
         widgets = {
-            'status': forms.Select(attrs={'class': 'form-control'}),
             'employee': forms.Select(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'island': forms.Select(attrs={'class': 'form-control'}),
             'monitor': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'keyboard': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'mouse': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'mousepad': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'headset': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
-            'status': 'Status',
             'employee': 'Funcionário',
+            'category': 'Setor',
+            'island': 'Ilha',
             'monitor': 'Monitor',
             'keyboard': 'Teclado',
             'mouse': 'Mouse',
+            'mousepad': 'Mousepad',
             'headset': 'Fone de Ouvido'
         }
 
@@ -95,3 +102,13 @@ class EmployeeForm(forms.ModelForm):
                  raise forms.ValidationError("Telefone deve ter 10 ou 11 dígitos (com DDD).")
             # Adicionar formatação aqui se desejar
         return phone # Ou retorna formatado
+
+class LoginForm(AuthenticationForm):
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome de usuário'}),
+        label='Nome de usuário'
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Senha'}),
+        label='Senha'
+    )

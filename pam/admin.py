@@ -1,29 +1,33 @@
 from django.contrib import admin
-from .models import Employee, Workstation, Room, Island
+from .models import Employee, Room, Island, Workstation
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'sector', 'created_at')
-    search_fields = ('name', 'id')
-    list_filter = ('sector', 'created_at')
-    readonly_fields = ('sector',)  # Torna o campo sector apenas leitura
+    list_display = ('name', 'cpf', 'sector', 'phone', 'email')
+    search_fields = ('name', 'cpf', 'email')
+    list_filter = ('sector',)
 
 @admin.register(Room)
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'created_at')
+    list_display = ('name',)
     search_fields = ('name',)
 
 @admin.register(Island)
 class IslandAdmin(admin.ModelAdmin):
-    list_display = ('id', 'room', 'island_number', 'created_at')
+    list_display = ('room', 'island_number', 'category')
     list_filter = ('room',)
-    search_fields = ('room__name',)
-    list_select_related = ('room',) # Optimize query
+    search_fields = ('room__name', 'island_number')
 
 @admin.register(Workstation)
 class WorkstationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'island', 'category', 'sequence', 'employee', 'status', 'monitor', 'keyboard', 'mouse', 'mousepad', 'headset')
-    list_filter = ('island__room', 'island', 'category', 'status', 'monitor', 'keyboard', 'mouse', 'mousepad', 'headset')
-    search_fields = ('employee__name', 'island__room__name') # Search by room name too
+    list_display = ('get_display_name', 'category', 'status', 'employee')
+    list_filter = ('status', 'category', 'island__room')
+    search_fields = ('employee__name', 'category', 'sequence')
     raw_id_fields = ('employee', 'island',) # Add island to raw_id_fields for better UI with many islands
     list_select_related = ('employee', 'island', 'island__room') # Optimize queries
+    
+    def get_display_name(self, obj):
+        if obj.island:
+            return f"Sala {obj.island.room.name}, Ilha {obj.island.island_number}, PA {obj.sequence}"
+        return f"{obj.get_category_display()} {obj.sequence}"
+    get_display_name.short_description = "Estação"

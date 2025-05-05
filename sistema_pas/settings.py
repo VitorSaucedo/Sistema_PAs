@@ -153,6 +153,6 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Login settings
-LOGIN_URL = '/admin/login/'
-LOGIN_REDIRECT_URL = '/office-admin/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'

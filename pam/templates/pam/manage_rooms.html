@@ -1,0 +1,97 @@
+{% extends 'pam/base.html' %}
+
+{% block content %}
+<style>
+    /* Estilos para melhorar a legibilidade no tema escuro */
+    .dark-theme label {
+        color: #ffffff;
+    }
+    
+    .dark-theme .form-select option {
+        background-color: #2d2d2d;
+        color: #ffffff;
+    }
+    
+    .dark-theme .card-header h5 {
+        color: #ffffff;
+    }
+    
+    .dark-theme .form-check-label {
+        color: #ffffff;
+    }
+    
+    .dark-theme .table th,
+    .dark-theme .table td {
+        color: #ffffff;
+    }
+    
+    .dark-theme p, 
+    .dark-theme h1, 
+    .dark-theme h5 {
+        color: #ffffff;
+    }
+</style>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Gerenciamento de Salas</h1>
+    
+    <div class="row">
+        <!-- Formulário para adicionar nova sala -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Adicionar Nova Sala</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label">Nome da Sala</label>
+                            <input type="text" name="name" id="id_name" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Adicionar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lista de salas existentes -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Salas Existentes</h5>
+                </div>
+                <div class="card-body">
+                    {% if rooms %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for room in rooms %}
+                            <tr>
+                                <td>{{ room.name }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'pam:delete_room' room.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir esta sala? Todas as ilhas e PAs associadas também serão excluídas.')">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p>Não há salas cadastradas.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

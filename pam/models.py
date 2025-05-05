@@ -48,9 +48,17 @@ class Room(models.Model):
         return self.name
 
 class Island(models.Model):
+    CATEGORY_CHOICES = [
+        ('ESTAGIO', 'Estágio'),
+        ('INSS', 'INSS'),
+        ('SIAPE_DION', 'SIAPE Dion'),
+        ('SIAPE_LEO', 'SIAPE Leo'),
+    ]
+    
     room = models.ForeignKey(Room, related_name='islands', on_delete=models.CASCADE, verbose_name='Sala')
     island_number = models.PositiveIntegerField(verbose_name='Número da Ilha')
-    category = models.CharField(max_length=50, blank=True, null=True, verbose_name='Categoria da Ilha')
+    name = models.CharField(max_length=100, verbose_name='Nome da Ilha', default='')
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='INSS', verbose_name='Categoria da Ilha')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -61,7 +69,13 @@ class Island(models.Model):
         ordering = ['room', 'island_number']
 
     def __str__(self):
-        return f"Sala {self.room.name} - Ilha {self.island_number}"
+        return f"Ilha {self.name}"
+
+    def save(self, *args, **kwargs):
+        # Se não foi fornecido um nome, usa o número da ilha
+        if not self.name:
+            self.name = str(self.island_number)
+        super().save(*args, **kwargs)
 
 
 class Workstation(models.Model):
@@ -163,7 +177,7 @@ class Workstation(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        location = f"Sala {self.island.room.name}, Ilha {self.island.island_number}" if self.island else f"Categoria {self.category}"
+        location = f"Sala {self.island.room.name}, Ilha {self.island.name}" if self.island else f"Categoria {self.category}"
         return f"PA {location} Seq {self.sequence} - {self.employee.name if self.employee else 'Sem funcionário'}"
 
 # Signal to handle related objects upon Room deletion if needed more granularly than CASCADE

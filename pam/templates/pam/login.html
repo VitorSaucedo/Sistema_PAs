@@ -1,0 +1,53 @@
+{% extends 'pam/base.html' %}
+
+{% block content %}
+<style>
+    /* Estilos para melhorar a legibilidade no tema escuro */
+    .dark-theme label {
+        color: #ffffff;
+    }
+    
+    .dark-theme .form-select option {
+        background-color: #2d2d2d;
+        color: #ffffff;
+    }
+    
+    .dark-theme .card-header h3 {
+        color: #ffffff;
+    }
+    
+    .dark-theme .btn-primary {
+        color: #ffffff;
+    }
+</style>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-center">Login</h3>
+            </div>
+            <div class="card-body">
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    Usuário ou senha incorretos. Por favor, tente novamente.
+                </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
+                        {{ form.username }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
+                        {{ form.password }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

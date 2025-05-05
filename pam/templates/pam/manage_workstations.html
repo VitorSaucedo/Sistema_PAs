@@ -1,0 +1,279 @@
+{% extends 'pam/base.html' %}
+
+{% block content %}
+<style>
+    /* Estilos para melhorar a legibilidade no tema escuro */
+    .dark-theme label {
+        color: #ffffff;
+    }
+    
+    .dark-theme .form-select option {
+        background-color: #2d2d2d;
+        color: #ffffff;
+    }
+    
+    .dark-theme .card-header h5 {
+        color: #ffffff;
+    }
+    
+    .dark-theme .form-check-label {
+        color: #ffffff;
+    }
+    
+    .dark-theme .table th,
+    .dark-theme .table td {
+        color: #ffffff;
+    }
+    
+    .dark-theme .badge {
+        color: #ffffff;
+    }
+    
+    .dark-theme p, 
+    .dark-theme h1, 
+    .dark-theme h5 {
+        color: #ffffff;
+    }
+</style>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Gerenciamento de PAs (Estações de Trabalho)</h1>
+    
+    <div class="row">
+        <!-- Formulário para adicionar nova estação de trabalho -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Adicionar Nova Estação</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="workstation-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_room" class="form-label">Sala</label>
+                            <select name="room" id="id_room" class="form-select" required>
+                                <option value="">Selecione uma sala</option>
+                                {% for room in rooms %}
+                                <option value="{{ room.id }}">{{ room.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_island" class="form-label">Ilha</label>
+                            <select name="island" id="id_island" class="form-select" disabled required>
+                                <option value="">Selecione uma sala primeiro</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_category" class="form-label">Setor</label>
+                            <select name="category" id="id_category" class="form-select" disabled required>
+                                <option value="">Selecione uma ilha primeiro</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_employee" class="form-label">Funcionário</label>
+                            <select name="employee" id="id_employee" class="form-select">
+                                <option value="">Sem funcionário</option>
+                                {% for employee in employees %}
+                                <option value="{{ employee.id }}">{{ employee.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Periféricos</label>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" name="monitor" id="id_monitor" class="form-check-input" checked>
+                                        <label for="id_monitor" class="form-check-label">Monitor</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" name="keyboard" id="id_keyboard" class="form-check-input" checked>
+                                        <label for="id_keyboard" class="form-check-label">Teclado</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" name="mouse" id="id_mouse" class="form-check-input" checked>
+                                        <label for="id_mouse" class="form-check-label">Mouse</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" name="mousepad" id="id_mousepad" class="form-check-input" checked>
+                                        <label for="id_mousepad" class="form-check-label">Mousepad</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" name="headset" id="id_headset" class="form-check-input" checked>
+                                        <label for="id_headset" class="form-check-label">Fone de ouvido</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Adicionar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lista de estações de trabalho existentes -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Estações Existentes</h5>
+                </div>
+                <div class="card-body">
+                    {% if workstations %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>PA</th>
+                                <th>Sala/Ilha</th>
+                                <th>Setor</th>
+                                <th>Funcionário</th>
+                                <th>Periféricos</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ws in workstations %}
+                            <tr>
+                                <td>
+                                    {% if ws.sequence %}
+                                    PA-{{ ws.sequence }}
+                                    {% else %}
+                                    PA-S/N
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if ws.island %}
+                                    {{ ws.island.room.name }}/Ilha {{ ws.island.name }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>{{ ws.get_category_display }}</td>
+                                <td>{{ ws.employee.name|default:"Sem funcionário" }}</td>
+                                <td>
+                                    {% if ws.monitor %}<span class="badge bg-success">M</span>{% else %}<span class="badge bg-danger">M</span>{% endif %}
+                                    {% if ws.keyboard %}<span class="badge bg-success">T</span>{% else %}<span class="badge bg-danger">T</span>{% endif %}
+                                    {% if ws.mouse %}<span class="badge bg-success">Mo</span>{% else %}<span class="badge bg-danger">Mo</span>{% endif %}
+                                    {% if ws.mousepad %}<span class="badge bg-success">Mp</span>{% else %}<span class="badge bg-danger">Mp</span>{% endif %}
+                                    {% if ws.headset %}<span class="badge bg-success">F</span>{% else %}<span class="badge bg-danger">F</span>{% endif %}
+                                </td>
+                                <td>
+                                    <form method="post" action="{% url 'pam:delete_workstation' ws.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir esta estação de trabalho?')">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p>Não há estações de trabalho cadastradas.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const roomSelect = document.getElementById('id_room');
+        const islandSelect = document.getElementById('id_island');
+        const categorySelect = document.getElementById('id_category');
+        const roomHiddenInput = document.createElement('input');
+        
+        // Criar o input hidden para o campo room
+        roomHiddenInput.type = 'hidden';
+        roomHiddenInput.name = 'room';
+        roomHiddenInput.id = 'id_room_hidden';
+        document.getElementById('workstation-form').appendChild(roomHiddenInput);
+        
+        // Quando a sala é selecionada, busca as ilhas
+        roomSelect.addEventListener('change', function() {
+            const roomId = this.value;
+            islandSelect.disabled = !roomId;
+            categorySelect.disabled = true; // Desabilita o setor até que uma ilha seja selecionada
+            categorySelect.innerHTML = '<option value="">Selecione uma ilha primeiro</option>';
+            
+            // Atualiza o campo oculto
+            roomHiddenInput.value = roomId;
+            
+            if (!roomId) {
+                islandSelect.innerHTML = '<option value="">Selecione uma sala primeiro</option>';
+                return;
+            }
+            
+            // Resetar o select de ilha
+            islandSelect.innerHTML = '<option value="">Carregando ilhas...</option>';
+            
+            fetch(`/get-islands-by-room/${roomId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    islandSelect.innerHTML = '<option value="">Selecione uma ilha</option>';
+                    if (data.islands && data.islands.length > 0) {
+                        data.islands.forEach(island => {
+                            const option = document.createElement('option');
+                            option.value = island.id;
+                            option.textContent = island.display_name || `Ilha ${island.island_number}`;
+                            option.dataset.category = island.category;
+                            islandSelect.appendChild(option);
+                        });
+                        islandSelect.disabled = false;
+                    } else {
+                        islandSelect.innerHTML = '<option value="">Nenhuma ilha encontrada para esta sala</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar ilhas:', error);
+                    islandSelect.innerHTML = '<option value="">Erro ao carregar ilhas</option>';
+                });
+        });
+        
+        // Quando a ilha é selecionada, define automaticamente o setor
+        islandSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            if (selectedOption && selectedOption.dataset.category) {
+                // Habilita e preenche o campo de setor
+                categorySelect.disabled = false;
+                categorySelect.innerHTML = ''; // Limpa as opções atuais
+                
+                // Cria a opção correspondente à categoria da ilha
+                const option = document.createElement('option');
+                option.value = selectedOption.dataset.category;
+                
+                // Define o texto exibido com base no valor da categoria
+                let categoryText = selectedOption.dataset.category;
+                switch(selectedOption.dataset.category) {
+                    case 'ESTAGIO':
+                        categoryText = 'Estágio';
+                        break;
+                    case 'INSS':
+                        categoryText = 'INSS';
+                        break;
+                    case 'SIAPE_DION':
+                        categoryText = 'SIAPE Dion';
+                        break;
+                    case 'SIAPE_LEO':
+                        categoryText = 'SIAPE Leo';
+                        break;
+                }
+                
+                option.textContent = categoryText;
+                categorySelect.appendChild(option);
+                
+                // Seleciona automaticamente essa opção
+                categorySelect.selectedIndex = 0;
+            } else {
+                categorySelect.disabled = true;
+                categorySelect.innerHTML = '<option value="">Selecione uma ilha primeiro</option>';
+            }
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib import messages
+from django.contrib.auth import login, authenticate, logout
 from .models import Workstation, Employee, Room, Island
-from .forms import WorkstationForm, RoomForm, EmployeeForm
+from .forms import WorkstationForm, RoomForm, EmployeeForm, LoginForm
 from django.http import JsonResponse
 from django.db.models import Prefetch
 from django.views.decorators.http import require_POST
@@ -12,7 +13,31 @@ from django.db.models.query import Prefetch
 from django.db import transaction
 
 def is_admin(user):
-    return user.is_authenticated and user.is_staff
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+def is_superuser(user):
+    return user.is_authenticated and user.is_superuser
+
+def login_view(request):
+    """View para login de usuários."""
+    if request.method == 'POST':
+        form = LoginForm(data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                next_url = request.GET.get('next', '/')
+                return redirect(next_url)
+    else:
+        form = LoginForm()
+    return render(request, 'pam/login.html', {'form': form})
+
+def logout_view(request):
+    """View para logout de usuários."""
+    logout(request)
+    return redirect('pam:office_view')
 
 # --- Refined arrange_workstations_in_columns Function ---
 def arrange_workstations_in_columns(workstations_list_input, num_columns=2):
@@ -98,6 +123,7 @@ def office_view(request):
     # Precisamos garantir que o template 'pam/office_view.html' também use 'rooms_data'
     return render(request, 'pam/office_view.html', context)
 
+@login_required
 @user_passes_test(is_admin)
 def admin_office_view(request):
     """Visualização administrativa do escritório, organizada por Salas e Ilhas"""
@@ -325,6 +351,7 @@ def add_room_ajax_view(request):
                         island = Island.objects.create(
                             room=room,
                             island_number=island_num,
+                            name=str(island_num),
                             category=island_category # *** NOVO: Salva a categoria na ilha ***
                         )
                         for j in range(num_workstations):
@@ -410,8 +437,11 @@ def remove_room_ajax_view(request, room_id):
 
 # --- View para Gerenciar Funcionários ---
 
+@login_required
 @user_passes_test(is_admin)
 def manage_employees_view(request):
+    """View para gerenciar funcionários."""
+    
     if request.method == 'POST':
         action = request.POST.get('action')
 
@@ -459,3 +489,342 @@ def manage_employees_view(request):
         'form': form_to_render,
     }
     return render(request, 'pam/manage_employees.html', context)
+
+@user_passes_test(is_superuser)
+def manage_rooms_view(request):
+    """View para gerenciar salas."""
+    rooms = Room.objects.all().order_by('name')
+    
+    if request.method == 'POST':
+        form = RoomForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Sala adicionada com sucesso!")
+            return redirect('pam:manage_rooms')
+    else:
+        form = RoomForm()
+        
+    context = {
+        'rooms': rooms,
+        'form': form
+    }
+    return render(request, 'pam/manage_rooms.html', context)
+
+@user_passes_test(is_superuser)
+def manage_islands_view(request):
+    """View para gerenciar ilhas."""
+    islands = Island.objects.select_related('room').all().order_by('room__name', 'island_number')
+    rooms = Room.objects.all().order_by('name')
+    
+    if request.method == 'POST':
+        room_id = request.POST.get('room')
+        island_name = request.POST.get('island_number')
+        category = request.POST.get('category')
+        
+        if not category:
+            messages.error(request, "A categoria da ilha é obrigatória!")
+            return redirect('pam:manage_islands')
+        
+        if room_id and island_name:
+            try:
+                room = Room.objects.get(id=room_id)
+                # Tratamento para aceitar valores não numéricos
+                try:
+                    island_number = int(island_name)
+                except ValueError:
+                    # Se não for um número, usamos um número sequencial
+                    last_island = Island.objects.filter(room=room).order_by('-island_number').first()
+                    island_number = 1
+                    if last_island:
+                        island_number = last_island.island_number + 1
+                
+                island = Island.objects.create(
+                    room=room,
+                    island_number=island_number,
+                    name=island_name,
+                    category=category
+                )
+                messages.success(request, f"Ilha {island_name} adicionada com sucesso!")
+                return redirect('pam:manage_islands')
+            except Exception as e:
+                messages.error(request, f"Erro ao adicionar ilha: {str(e)}")
+        else:
+            messages.error(request, "Sala e nome da ilha são obrigatórios!")
+    
+    context = {
+        'islands': islands,
+        'rooms': rooms
+    }
+    return render(request, 'pam/manage_islands.html', context)
+
+@user_passes_test(is_superuser)
+def manage_workstations_view(request):
+    """View para gerenciar estações de trabalho (PAs)."""
+    workstations = Workstation.objects.select_related('employee', 'island', 'island__room').all()
+    islands = Island.objects.select_related('room').all().order_by('room__name', 'island_number')
+    employees = Employee.objects.all().order_by('name')
+    rooms = Room.objects.all().order_by('name')
+    
+    if request.method == 'POST':
+        form = WorkstationForm(request.POST)
+        
+        # Vamos verificar se a ilha pertence à sala selecionada
+        island_id = request.POST.get('island')
+        room_id = request.POST.get('room')
+        
+        if island_id and room_id:
+            try:
+                island = Island.objects.get(id=island_id)
+                if str(island.room_id) != room_id:
+                    messages.error(request, "A ilha selecionada não pertence à sala selecionada!")
+                    form.add_error('island', "A ilha selecionada não pertence à sala selecionada.")
+            except Island.DoesNotExist:
+                form.add_error('island', "Ilha não encontrada.")
+        
+        if form.is_valid():
+            try:
+                workstation = form.save(commit=False)
+                
+                # Encontrar o próximo número de sequência disponível para a categoria
+                last_workstation = Workstation.objects.filter(
+                    category=workstation.category
+                ).order_by('-sequence').first()
+                
+                workstation.sequence = 1
+                if last_workstation:
+                    workstation.sequence = last_workstation.sequence + 1
+                
+                workstation.save()
+                messages.success(request, "Estação de trabalho adicionada com sucesso!")
+                return redirect('pam:manage_workstations')
+            except Exception as e:
+                messages.error(request, f"Erro ao adicionar estação de trabalho: {str(e)}")
+    else:
+        form = WorkstationForm()
+    
+    context = {
+        'workstations': workstations,
+        'islands': islands,
+        'employees': employees,
+        'form': form,
+        'rooms': rooms
+    }
+    return render(request, 'pam/manage_workstations.html', context)
+
+@user_passes_test(is_superuser)
+@require_POST
+def delete_room_view(request, room_id):
+    """View para deletar uma sala."""
+    room = get_object_or_404(Room, id=room_id)
+    room.delete()
+    messages.success(request, "Sala removida com sucesso!")
+    return redirect('pam:manage_rooms')
+
+@user_passes_test(is_superuser)
+@require_POST
+def delete_island_view(request, island_id):
+    """View para deletar uma ilha."""
+    island = get_object_or_404(Island, id=island_id)
+    island.delete()
+    messages.success(request, "Ilha removida com sucesso!")
+    return redirect('pam:manage_islands')
+
+@user_passes_test(is_superuser)
+@require_POST
+def delete_workstation_view(request, workstation_id):
+    """View para deletar uma estação de trabalho."""
+    workstation = get_object_or_404(Workstation, id=workstation_id)
+    workstation.delete()
+    messages.success(request, "Estação de trabalho removida com sucesso!")
+    return redirect('pam:manage_workstations')
+
+@user_passes_test(is_admin)
+def get_islands_by_room(request, room_id):
+    """API para obter ilhas de uma sala específica."""
+    try:
+        islands = Island.objects.filter(room_id=room_id).values('id', 'island_number', 'name', 'category').order_by('island_number')
+        # Formatar o nome da ilha para cada item da lista
+        islands_list = list(islands)
+        for island in islands_list:
+            island['display_name'] = f"Ilha {island['name']}"
+        return JsonResponse({'islands': islands_list})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@user_passes_test(is_superuser)
+def unified_management_view(request):
+    """View unificada para gerenciar todas as entidades (Salas, Ilhas, PAs e Funcionários) em uma única página."""
+    
+    # Variáveis para controlar se houve algum POST e para qual entidade
+    form_submitted = False
+    active_tab = request.POST.get('active_tab', 'rooms')  # Default para a aba de salas
+    
+    # ----- PROCESSAMENTO DE ROOMS -----
+    rooms = Room.objects.all().order_by('name')
+    room_form = RoomForm()
+    
+    if request.method == 'POST' and 'room_submit' in request.POST:
+        form_submitted = True
+        active_tab = 'rooms'
+        room_form = RoomForm(request.POST)
+        if room_form.is_valid():
+            room_form.save()
+            messages.success(request, "Sala adicionada com sucesso!")
+            return redirect('pam:unified_management')
+    
+    # ----- PROCESSAMENTO DE ISLANDS -----
+    islands = Island.objects.select_related('room').all().order_by('room__name', 'island_number')
+    
+    if request.method == 'POST' and 'island_submit' in request.POST:
+        form_submitted = True
+        active_tab = 'islands'
+        room_id = request.POST.get('room')
+        island_name = request.POST.get('island_number')
+        category = request.POST.get('category')
+        
+        if not category:
+            messages.error(request, "A categoria da ilha é obrigatória!")
+        elif room_id and island_name:
+            try:
+                room = Room.objects.get(id=room_id)
+                try:
+                    island_number = int(island_name)
+                except ValueError:
+                    last_island = Island.objects.filter(room=room).order_by('-island_number').first()
+                    island_number = 1
+                    if last_island:
+                        island_number = last_island.island_number + 1
+                
+                island = Island.objects.create(
+                    room=room,
+                    island_number=island_number,
+                    name=island_name,
+                    category=category
+                )
+                messages.success(request, f"Ilha {island_name} adicionada com sucesso!")
+                return redirect('pam:unified_management')
+            except Exception as e:
+                messages.error(request, f"Erro ao adicionar ilha: {str(e)}")
+        else:
+            messages.error(request, "Sala e nome da ilha são obrigatórios!")
+    
+    # ----- PROCESSAMENTO DE WORKSTATIONS -----
+    workstations = Workstation.objects.select_related('employee', 'island', 'island__room').all()
+    islands_for_ws = Island.objects.select_related('room').all().order_by('room__name', 'island_number')
+    workstation_form = WorkstationForm()
+    
+    if request.method == 'POST' and 'workstation_submit' in request.POST:
+        form_submitted = True
+        active_tab = 'workstations'
+        workstation_form = WorkstationForm(request.POST)
+        
+        # Verificar se a ilha pertence à sala selecionada
+        island_id = request.POST.get('island')
+        room_id = request.POST.get('room')
+        
+        if island_id and room_id:
+            try:
+                island = Island.objects.get(id=island_id)
+                if str(island.room_id) != room_id:
+                    messages.error(request, "A ilha selecionada não pertence à sala selecionada!")
+                    workstation_form.add_error('island', "A ilha selecionada não pertence à sala selecionada.")
+            except Island.DoesNotExist:
+                workstation_form.add_error('island', "Ilha não encontrada.")
+        
+        if workstation_form.is_valid():
+            try:
+                workstation = workstation_form.save(commit=False)
+                last_workstation = Workstation.objects.filter(
+                    category=workstation.category
+                ).order_by('-sequence').first()
+                
+                workstation.sequence = 1
+                if last_workstation:
+                    workstation.sequence = last_workstation.sequence + 1
+                
+                workstation.save()
+                messages.success(request, "Estação de trabalho adicionada com sucesso!")
+                return redirect('pam:unified_management')
+            except Exception as e:
+                messages.error(request, f"Erro ao adicionar estação de trabalho: {str(e)}")
+    
+    # ----- PROCESSAMENTO DE EMPLOYEES -----
+    employees = Employee.objects.all().order_by('name')
+    employee_form = EmployeeForm()
+    
+    if request.method == 'POST' and 'employee_submit' in request.POST:
+        form_submitted = True
+        active_tab = 'employees'
+        employee_form = EmployeeForm(request.POST)
+        if employee_form.is_valid():
+            try:
+                employee_form.save()
+                messages.success(request, "Funcionário adicionado com sucesso!")
+                return redirect('pam:unified_management')
+            except Exception as e:
+                messages.error(request, f"Erro ao adicionar funcionário: {e}")
+        else:
+            messages.error(request, "Erro de validação. Verifique os campos.")
+    
+    # Contexto geral para o template
+    context = {
+        'active_tab': active_tab,
+        # Salas
+        'rooms': rooms,
+        'room_form': room_form,
+        # Ilhas
+        'islands': islands,
+        'rooms_for_island': rooms,  # Usar para o dropdown
+        # Estações de trabalho
+        'workstations': workstations,
+        'islands_for_ws': islands_for_ws,
+        'workstation_form': workstation_form,
+        'rooms_for_ws': rooms,  # Usar para o dropdown
+        'employees_for_ws': employees,  # Usar para o dropdown
+        # Funcionários
+        'employees': employees,
+        'employee_form': employee_form,
+    }
+    
+    return render(request, 'pam/unified_management.html', context)
+
+@user_passes_test(is_superuser)
+@require_POST
+def toggle_peripheral_view(request, workstation_id):
+    """
+    View para alternar o estado de um periférico (monitor, teclado, mouse, mousepad, headset)
+    em uma estação de trabalho específica.
+    """
+    if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'success': False, 'error': 'Requisição inválida.'}, status=400)
+    
+    try:
+        workstation = get_object_or_404(Workstation, id=workstation_id)
+        peripheral_type = request.POST.get('peripheral_type')
+        
+        if peripheral_type not in ['monitor', 'keyboard', 'mouse', 'mousepad', 'headset']:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Tipo de periférico inválido.'
+            }, status=400)
+        
+        # Inverte o estado atual do periférico
+        current_value = getattr(workstation, peripheral_type)
+        setattr(workstation, peripheral_type, not current_value)
+        
+        # Salva a workstation com o campo atualizado
+        workstation.save(update_fields=[peripheral_type])
+        
+        # Retorna o novo estado do periférico
+        return JsonResponse({
+            'success': True,
+            'peripheral_type': peripheral_type,
+            'new_state': getattr(workstation, peripheral_type),
+            'workstation_id': workstation.id
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Erro ao atualizar periférico: {str(e)}'
+        }, status=500)

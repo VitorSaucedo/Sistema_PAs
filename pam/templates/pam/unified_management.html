@@ -1,0 +1,646 @@
+{% extends 'pam/base.html' %}
+
+{% block content %}
+<style>
+    /* Estilos para as abas */
+    .nav-tabs .nav-link {
+        color: #555;
+        border: 1px solid #ddd;
+        margin-right: 5px;
+        border-radius: 4px 4px 0 0;
+        background-color: #f5f5f5;
+    }
+    .nav-tabs .nav-link.active {
+        background-color: #fff;
+        border-bottom-color: #fff;
+        color: #007bff;
+        font-weight: bold;
+    }
+    .dark-theme .nav-tabs .nav-link {
+        color: #eee;
+        background-color: #333;
+        border-color: #444;
+    }
+    .dark-theme .nav-tabs .nav-link.active {
+        background-color: #222;
+        border-bottom-color: #222;
+        color: #ffffff;
+    }
+    .tab-content {
+        border: 1px solid #ddd;
+        border-top: none;
+        padding: 20px;
+        border-radius: 0 0 4px 4px;
+        background-color: #fff;
+    }
+    .dark-theme .tab-content {
+        background-color: #222;
+        border-color: #444;
+    }
+    /* Estilos adicionais para o tema escuro */
+    .dark-theme label {
+        color: #ffffff;
+    }
+    .dark-theme .form-select option {
+        background-color: #2d2d2d;
+        color: #ffffff;
+    }
+    .dark-theme .card-header h5 {
+        color: #ffffff;
+    }
+    .dark-theme .form-check-label {
+        color: #ffffff;
+    }
+    .dark-theme .table th,
+    .dark-theme .table td {
+        color: #ffffff;
+    }
+    .dark-theme p, 
+    .dark-theme h1, 
+    .dark-theme h5 {
+        color: #ffffff;
+    }
+</style>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Gerenciamento do Sistema</h1>
+    
+    <!-- Abas de navegação -->
+    <ul class="nav nav-tabs mb-0" id="managementTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'rooms' %}active{% endif %}" id="rooms-tab" data-bs-toggle="tab" data-bs-target="#rooms-content" type="button" role="tab">
+                <i class="bi bi-door-open"></i> Salas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'islands' %}active{% endif %}" id="islands-tab" data-bs-toggle="tab" data-bs-target="#islands-content" type="button" role="tab">
+                <i class="bi bi-grid-3x3"></i> Ilhas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'workstations' %}active{% endif %}" id="workstations-tab" data-bs-toggle="tab" data-bs-target="#workstations-content" type="button" role="tab">
+                <i class="bi bi-pc-display"></i> PAs
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'employees' %}active{% endif %}" id="employees-tab" data-bs-toggle="tab" data-bs-target="#employees-content" type="button" role="tab">
+                <i class="bi bi-people"></i> Funcionários
+            </button>
+        </li>
+    </ul>
+    
+    <!-- Conteúdo das abas -->
+    <div class="tab-content" id="managementTabsContent">
+        <!-- Conteúdo da aba SALAS -->
+        <div class="tab-pane fade {% if active_tab == 'rooms' %}show active{% endif %}" id="rooms-content" role="tabpanel">
+            <div class="row">
+                <!-- Formulário para adicionar nova sala -->
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Adicionar Nova Sala</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="active_tab" value="rooms">
+                                <div class="mb-3">
+                                    <label for="id_name" class="form-label">Nome da Sala</label>
+                                    {{ room_form.name }}
+                                </div>
+                                <button type="submit" name="room_submit" class="btn btn-primary">Adicionar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lista de salas existentes -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Salas Existentes</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if rooms %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for room in rooms %}
+                                    <tr>
+                                        <td>{{ room.name }}</td>
+                                        <td>
+                                            <form method="post" action="{% url 'pam:delete_room' room.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir esta sala? Todas as ilhas e PAs associadas também serão excluídas.')">
+                                                    Excluir
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p>Não há salas cadastradas.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteúdo da aba ILHAS -->
+        <div class="tab-pane fade {% if active_tab == 'islands' %}show active{% endif %}" id="islands-content" role="tabpanel">
+            <div class="row">
+                <!-- Formulário para adicionar nova ilha -->
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Adicionar Nova Ilha</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="active_tab" value="islands">
+                                <div class="mb-3">
+                                    <label for="room" class="form-label">Sala</label>
+                                    <select name="room" id="room" class="form-select" required>
+                                        <option value="">Selecione uma sala</option>
+                                        {% for room in rooms_for_island %}
+                                        <option value="{{ room.id }}">{{ room.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="island_number" class="form-label">Nome da Ilha</label>
+                                    <input type="text" name="island_number" id="island_number" class="form-control" required>
+                                    <small class="form-text text-muted">Será exibido como "Ilha nome-digitado"</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="category" class="form-label">Categoria</label>
+                                    <select name="category" id="category" class="form-select" required>
+                                        <option value="">Selecione uma categoria</option>
+                                        <option value="ESTAGIO">Estágio</option>
+                                        <option value="INSS">INSS</option>
+                                        <option value="SIAPE_DION">SIAPE Dion</option>
+                                        <option value="SIAPE_LEO">SIAPE Leo</option>
+                                    </select>
+                                </div>
+                                <button type="submit" name="island_submit" class="btn btn-primary">Adicionar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lista de ilhas existentes -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Ilhas Existentes</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if islands %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Sala</th>
+                                        <th>Nome da Ilha</th>
+                                        <th>Categoria</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for island in islands %}
+                                    <tr>
+                                        <td>{{ island.room.name }}</td>
+                                        <td>Ilha {{ island.name }}</td>
+                                        <td>{{ island.get_category_display }}</td>
+                                        <td>
+                                            <form method="post" action="{% url 'pam:delete_island' island.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir esta ilha? Todas as PAs associadas também serão excluídas.')">
+                                                    Excluir
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p>Não há ilhas cadastradas.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteúdo da aba PAs (Workstations) -->
+        <div class="tab-pane fade {% if active_tab == 'workstations' %}show active{% endif %}" id="workstations-content" role="tabpanel">
+            <div class="row">
+                <!-- Formulário para adicionar nova estação de trabalho -->
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Adicionar Nova Estação</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" id="workstation-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="active_tab" value="workstations">
+                                <div class="mb-3">
+                                    <label for="id_room" class="form-label">Sala</label>
+                                    <select name="room" id="id_room" class="form-select" required>
+                                        <option value="">Selecione uma sala</option>
+                                        {% for room in rooms_for_ws %}
+                                        <option value="{{ room.id }}">{{ room.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="id_island" class="form-label">Ilha</label>
+                                    <select name="island" id="id_island" class="form-select" disabled required>
+                                        <option value="">Selecione uma sala primeiro</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="id_category" class="form-label">Setor</label>
+                                    <select name="category" id="id_category" class="form-select" disabled required>
+                                        <option value="">Selecione uma ilha primeiro</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="id_employee" class="form-label">Funcionário</label>
+                                    <select name="employee" id="id_employee" class="form-select">
+                                        <option value="">Sem funcionário</option>
+                                        {% for employee in employees_for_ws %}
+                                        <option value="{{ employee.id }}">{{ employee.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Periféricos</label>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="form-check mb-2">
+                                                <input type="checkbox" name="monitor" id="id_monitor" class="form-check-input" checked>
+                                                <label for="id_monitor" class="form-check-label">Monitor</label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input type="checkbox" name="keyboard" id="id_keyboard" class="form-check-input" checked>
+                                                <label for="id_keyboard" class="form-check-label">Teclado</label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input type="checkbox" name="mouse" id="id_mouse" class="form-check-input" checked>
+                                                <label for="id_mouse" class="form-check-label">Mouse</label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input type="checkbox" name="mousepad" id="id_mousepad" class="form-check-input" checked>
+                                                <label for="id_mousepad" class="form-check-label">Mousepad</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input type="checkbox" name="headset" id="id_headset" class="form-check-input" checked>
+                                                <label for="id_headset" class="form-check-label">Fone de ouvido</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" name="workstation_submit" class="btn btn-primary w-100">Adicionar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lista de estações de trabalho existentes -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Estações Existentes</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if workstations %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>PA</th>
+                                        <th>Sala/Ilha</th>
+                                        <th>Setor</th>
+                                        <th>Funcionário</th>
+                                        <th>Periféricos</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ws in workstations %}
+                                    <tr>
+                                        <td>
+                                            {% if ws.sequence %}
+                                            PA-{{ ws.sequence }}
+                                            {% else %}
+                                            PA-S/N
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if ws.island %}
+                                            {{ ws.island.room.name }}/Ilha {{ ws.island.name }}
+                                            {% else %}
+                                            -
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ ws.get_category_display }}</td>
+                                        <td>{{ ws.employee.name|default:"Sem funcionário" }}</td>
+                                        <td>
+                                            <span class="badge {% if ws.monitor %}bg-success{% else %}bg-danger{% endif %} peripheral-toggle" 
+                                                  data-ws-id="{{ ws.id }}" data-type="monitor" data-state="{{ ws.monitor|lower }}" style="cursor:pointer" title="Clique para alterar status">M</span>
+                                            <span class="badge {% if ws.keyboard %}bg-success{% else %}bg-danger{% endif %} peripheral-toggle" 
+                                                  data-ws-id="{{ ws.id }}" data-type="keyboard" data-state="{{ ws.keyboard|lower }}" style="cursor:pointer" title="Clique para alterar status">T</span>
+                                            <span class="badge {% if ws.mouse %}bg-success{% else %}bg-danger{% endif %} peripheral-toggle" 
+                                                  data-ws-id="{{ ws.id }}" data-type="mouse" data-state="{{ ws.mouse|lower }}" style="cursor:pointer" title="Clique para alterar status">Mo</span>
+                                            <span class="badge {% if ws.mousepad %}bg-success{% else %}bg-danger{% endif %} peripheral-toggle" 
+                                                  data-ws-id="{{ ws.id }}" data-type="mousepad" data-state="{{ ws.mousepad|lower }}" style="cursor:pointer" title="Clique para alterar status">Mp</span>
+                                            <span class="badge {% if ws.headset %}bg-success{% else %}bg-danger{% endif %} peripheral-toggle" 
+                                                  data-ws-id="{{ ws.id }}" data-type="headset" data-state="{{ ws.headset|lower }}" style="cursor:pointer" title="Clique para alterar status">F</span>
+                                        </td>
+                                        <td>
+                                            <form method="post" action="{% url 'pam:delete_workstation' ws.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir esta estação de trabalho?')">
+                                                    Excluir
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p>Não há estações de trabalho cadastradas.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteúdo da aba Funcionários -->
+        <div class="tab-pane fade {% if active_tab == 'employees' %}show active{% endif %}" id="employees-content" role="tabpanel">
+            <div class="row">
+                <!-- Formulário para adicionar novo funcionário -->
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Adicionar Novo Funcionário</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="active_tab" value="employees">
+                                
+                                <div class="mb-3">
+                                    <label for="id_name" class="form-label">Nome</label>
+                                    {{ employee_form.name }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_cpf" class="form-label">CPF</label>
+                                    {{ employee_form.cpf }}
+                                    <small class="form-text text-muted">{{ employee_form.cpf.help_text }}</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_email" class="form-label">Email</label>
+                                    {{ employee_form.email }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_phone" class="form-label">Telefone</label>
+                                    {{ employee_form.phone }}
+                                    <small class="form-text text-muted">{{ employee_form.phone.help_text }}</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_sector" class="form-label">Setor</label>
+                                    {{ employee_form.sector }}
+                                </div>
+                                
+                                <button type="submit" name="employee_submit" class="btn btn-primary">Adicionar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lista de funcionários existentes -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Funcionários Existentes</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if employees %}
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>CPF</th>
+                                        <th>Email</th>
+                                        <th>Telefone</th>
+                                        <th>Setor</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for employee in employees %}
+                                    <tr>
+                                        <td>{{ employee.name }}</td>
+                                        <td>{{ employee.cpf }}</td>
+                                        <td>{{ employee.email|default:"-" }}</td>
+                                        <td>{{ employee.phone }}</td>
+                                        <td>{{ employee.get_sector_display }}</td>
+                                        <td>
+                                            <form method="post" action="" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="remove">
+                                                <input type="hidden" name="employee_id" value="{{ employee.id }}">
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir este funcionário?')">
+                                                    Excluir
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p>Não há funcionários cadastrados.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Recupera o estado da aba ativa do localStorage
+        const lastActiveTab = localStorage.getItem('activeManagementTab');
+        if (lastActiveTab && document.getElementById(lastActiveTab)) {
+            // Ativa a aba salva apenas se não houver aba ativa do servidor (POST)
+            const activeTabFromServer = '{{ active_tab }}';
+            if (activeTabFromServer === 'rooms') { // Valor default, significa que não veio do POST
+                document.getElementById(lastActiveTab).click();
+            }
+        }
+        
+        // Salva a aba ativa no localStorage quando mudar
+        const tabElements = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        tabElements.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(event) {
+                localStorage.setItem('activeManagementTab', event.target.id);
+            });
+        });
+        
+        // Script para o gerenciamento de PAs
+        const roomSelect = document.getElementById('id_room');
+        const islandSelect = document.getElementById('id_island');
+        const categorySelect = document.getElementById('id_category');
+        const roomHiddenInput = document.createElement('input');
+        
+        // Criar o input hidden para o campo room
+        roomHiddenInput.type = 'hidden';
+        roomHiddenInput.name = 'room';
+        roomHiddenInput.id = 'id_room_hidden';
+        document.getElementById('workstation-form').appendChild(roomHiddenInput);
+        
+        // Quando a sala é selecionada, busca as ilhas
+        roomSelect.addEventListener('change', function() {
+            const roomId = this.value;
+            islandSelect.disabled = !roomId;
+            categorySelect.disabled = true; // Desabilita o setor até que uma ilha seja selecionada
+            categorySelect.innerHTML = '<option value="">Selecione uma ilha primeiro</option>';
+            
+            // Atualiza o campo oculto
+            roomHiddenInput.value = roomId;
+            
+            if (!roomId) {
+                islandSelect.innerHTML = '<option value="">Selecione uma sala primeiro</option>';
+                return;
+            }
+            
+            // Resetar o select de ilha
+            islandSelect.innerHTML = '<option value="">Carregando ilhas...</option>';
+            
+            fetch(`/get-islands-by-room/${roomId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    islandSelect.innerHTML = '<option value="">Selecione uma ilha</option>';
+                    if (data.islands && data.islands.length > 0) {
+                        data.islands.forEach(island => {
+                            const option = document.createElement('option');
+                            option.value = island.id;
+                            option.textContent = island.display_name || `Ilha ${island.name}`;
+                            option.dataset.category = island.category;
+                            islandSelect.appendChild(option);
+                        });
+                        islandSelect.disabled = false;
+                    } else {
+                        islandSelect.innerHTML = '<option value="">Nenhuma ilha encontrada para esta sala</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar ilhas:', error);
+                    islandSelect.innerHTML = '<option value="">Erro ao carregar ilhas</option>';
+                });
+        });
+        
+        // Quando a ilha é selecionada, define automaticamente o setor
+        islandSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            if (selectedOption && selectedOption.dataset.category) {
+                // Habilita e preenche o campo de setor
+                categorySelect.disabled = false;
+                categorySelect.innerHTML = ''; // Limpa as opções atuais
+                
+                // Cria a opção correspondente à categoria da ilha
+                const option = document.createElement('option');
+                option.value = selectedOption.dataset.category;
+                
+                // Define o texto exibido com base no valor da categoria
+                let categoryText = selectedOption.dataset.category;
+                switch(selectedOption.dataset.category) {
+                    case 'ESTAGIO':
+                        categoryText = 'Estágio';
+                        break;
+                    case 'INSS':
+                        categoryText = 'INSS';
+                        break;
+                    case 'SIAPE_DION':
+                        categoryText = 'SIAPE Dion';
+                        break;
+                    case 'SIAPE_LEO':
+                        categoryText = 'SIAPE Leo';
+                        break;
+                }
+                
+                option.textContent = categoryText;
+                categorySelect.appendChild(option);
+                
+                // Seleciona automaticamente essa opção
+                categorySelect.selectedIndex = 0;
+            } else {
+                categorySelect.disabled = true;
+                categorySelect.innerHTML = '<option value="">Selecione uma ilha primeiro</option>';
+            }
+        });
+        
+        // Adiciona o evento de clique para os ícones de periféricos
+        const peripheralToggleElements = document.querySelectorAll('.peripheral-toggle');
+        peripheralToggleElements.forEach(element => {
+            element.addEventListener('click', function() {
+                const workstationId = this.getAttribute('data-ws-id');
+                const peripheralType = this.getAttribute('data-type');
+                const currentState = this.getAttribute('data-state') === 'true';
+                
+                // Obtém o token CSRF
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                // Envia a requisição AJAX para alternar o estado do periférico
+                fetch(`/toggle-peripheral/${workstationId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `peripheral_type=${peripheralType}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Atualiza o estado visual do ícone
+                        this.classList.remove(currentState ? 'bg-success' : 'bg-danger');
+                        this.classList.add(data.new_state ? 'bg-success' : 'bg-danger');
+                        this.setAttribute('data-state', data.new_state);
+                    } else {
+                        alert(`Erro: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro na requisição:', error);
+                    alert('Erro na comunicação com o servidor.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %} 

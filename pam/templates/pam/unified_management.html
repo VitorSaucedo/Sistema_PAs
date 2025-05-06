@@ -270,19 +270,8 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="id_category" class="form-label">Setor</label>
-                                    <select name="category" id="id_category" class="form-select" disabled required>
-                                        <option value="">Selecione uma ilha primeiro</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="id_employee" class="form-label">Funcionário</label>
-                                    <select name="employee" id="id_employee" class="form-select">
-                                        <option value="">Sem funcionário</option>
-                                        {% for employee in employees_for_ws %}
-                                        <option value="{{ employee.id }}">{{ employee.name }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    <label for="{{ workstation_form.employee.id_for_label }}" class="form-label">Funcionário</label>
+                                    {{ workstation_form.employee }}
                                 </div>
                                 
                                 <div class="mb-3">
@@ -512,7 +501,6 @@
         // Script para o gerenciamento de PAs
         const roomSelect = document.getElementById('id_room');
         const islandSelect = document.getElementById('id_island');
-        const categorySelect = document.getElementById('id_category');
         const roomHiddenInput = document.createElement('input');
         
         // Criar o input hidden para o campo room
@@ -525,8 +513,6 @@
         roomSelect.addEventListener('change', function() {
             const roomId = this.value;
             islandSelect.disabled = !roomId;
-            categorySelect.disabled = true; // Desabilita o setor até que uma ilha seja selecionada
-            categorySelect.innerHTML = '<option value="">Selecione uma ilha primeiro</option>';
             
             // Atualiza o campo oculto
             roomHiddenInput.value = roomId;
@@ -548,7 +534,6 @@
                             const option = document.createElement('option');
                             option.value = island.id;
                             option.textContent = island.display_name || `Ilha ${island.name}`;
-                            option.dataset.category = island.category;
                             islandSelect.appendChild(option);
                         });
                         islandSelect.disabled = false;
@@ -560,47 +545,6 @@
                     console.error('Erro ao buscar ilhas:', error);
                     islandSelect.innerHTML = '<option value="">Erro ao carregar ilhas</option>';
                 });
-        });
-        
-        // Quando a ilha é selecionada, define automaticamente o setor
-        islandSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            
-            if (selectedOption && selectedOption.dataset.category) {
-                // Habilita e preenche o campo de setor
-                categorySelect.disabled = false;
-                categorySelect.innerHTML = ''; // Limpa as opções atuais
-                
-                // Cria a opção correspondente à categoria da ilha
-                const option = document.createElement('option');
-                option.value = selectedOption.dataset.category;
-                
-                // Define o texto exibido com base no valor da categoria
-                let categoryText = selectedOption.dataset.category;
-                switch(selectedOption.dataset.category) {
-                    case 'ESTAGIO':
-                        categoryText = 'Estágio';
-                        break;
-                    case 'INSS':
-                        categoryText = 'INSS';
-                        break;
-                    case 'SIAPE_DION':
-                        categoryText = 'SIAPE Dion';
-                        break;
-                    case 'SIAPE_LEO':
-                        categoryText = 'SIAPE Leo';
-                        break;
-                }
-                
-                option.textContent = categoryText;
-                categorySelect.appendChild(option);
-                
-                // Seleciona automaticamente essa opção
-                categorySelect.selectedIndex = 0;
-            } else {
-                categorySelect.disabled = true;
-                categorySelect.innerHTML = '<option value="">Selecione uma ilha primeiro</option>';
-            }
         });
         
         // Adiciona o evento de clique para os ícones de periféricos

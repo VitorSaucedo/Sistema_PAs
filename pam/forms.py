@@ -7,26 +7,26 @@ class WorkstationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Customize employee choices to show (Ocupado)
-        current_employee = self.instance.employee # Employee currently assigned to this specific workstation
-        
-        # Get IDs of all employees currently assigned to *any* workstation
-        occupied_employee_ids = set(
-            Workstation.objects.filter(employee__isnull=False)
-                             .exclude(pk=self.instance.pk) # Exclude the current workstation being edited
-                             .values_list('employee_id', flat=True)
+        current_employee = self.instance.employee # Funcionário atualmente atribuído a esta PA específica, se houver
+
+        # Obter IDs de todos os funcionários atualmente atribuídos a QUALQUER PA
+        all_occupied_employee_ids = set(
+            Workstation.objects.filter(employee__isnull=False).values_list('employee_id', flat=True)
         )
 
-        choices = [('', '---------')] # Start with empty choice
-        
-        # Use select_related('workstation_set') might be too heavy, simple iteration is fine for moderate numbers
+        choices = [('', '---------')] # Começa com a opção vazia
+
         for emp in Employee.objects.order_by('name'):
-            label = emp.name
-            # Check if employee is occupied elsewhere OR if they are the current employee (to avoid showing occupied for self)
-            if emp.id in occupied_employee_ids:
-                 label = f"{emp.name} (Ocupado)"
-            
-            choices.append((emp.id, label))
+            # Um funcionário é considerado selecionável para este formulário se:
+            # 1. Ele não está em NENHUMA PA (seu ID não está em all_occupied_employee_ids)
+            # OU
+            # 2. Ele é o funcionário ATUALMENTE atribuído a ESTA PA (self.instance)
+            is_selectable_for_this_instance = emp.id not in all_occupied_employee_ids
+            if current_employee and emp.id == current_employee.id:
+                is_selectable_for_this_instance = True
+
+            if is_selectable_for_this_instance:
+                choices.append((emp.id, emp.name)) # Adiciona apenas o nome, sem marcação de "(Ocupado)"
             
         self.fields['employee'].choices = choices
         
@@ -35,10 +35,9 @@ class WorkstationForm(forms.ModelForm):
 
     class Meta:
         model = Workstation
-        fields = ['employee', 'category', 'island', 'monitor', 'keyboard', 'mouse', 'mousepad', 'headset']
+        fields = ['employee', 'island', 'monitor', 'keyboard', 'mouse', 'mousepad', 'headset']
         widgets = {
             'employee': forms.Select(attrs={'class': 'form-control'}),
-            'category': forms.Select(attrs={'class': 'form-control'}),
             'island': forms.Select(attrs={'class': 'form-control'}),
             'monitor': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'keyboard': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -48,7 +47,6 @@ class WorkstationForm(forms.ModelForm):
         }
         labels = {
             'employee': 'Funcionário',
-            'category': 'Setor',
             'island': 'Ilha',
             'monitor': 'Monitor',
             'keyboard': 'Teclado',

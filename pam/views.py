@@ -360,7 +360,7 @@ def add_room_ajax_view(request):
                                 island=island,
                                 status='UNOCCUPIED',
                                 sequence = j + 1, # Definindo a sequência
-                                category=island_category, # *** NOVO: Usa a categoria da ilha ***
+                                category=island_category, # Usando a categoria da própria ilha
                             )
                     else:
                         # Tratar erro: Inconsistência nos dados coletados
@@ -585,7 +585,11 @@ def manage_workstations_view(request):
             try:
                 workstation = form.save(commit=False)
                 
-                # Encontrar o próximo número de sequência disponível para a categoria
+                # Obter a categoria da ilha selecionada e atribuir à workstation
+                if workstation.island:
+                    workstation.category = workstation.island.category
+                    
+                # Buscar a última workstation com esta categoria para definir a sequência
                 last_workstation = Workstation.objects.filter(
                     category=workstation.category
                 ).order_by('-sequence').first()
@@ -734,6 +738,12 @@ def unified_management_view(request):
         if workstation_form.is_valid():
             try:
                 workstation = workstation_form.save(commit=False)
+                
+                # Obter a categoria da ilha selecionada e atribuir à workstation
+                if workstation.island:
+                    workstation.category = workstation.island.category
+                    
+                # Buscar a última workstation com esta categoria para definir a sequência
                 last_workstation = Workstation.objects.filter(
                     category=workstation.category
                 ).order_by('-sequence').first()

@@ -159,6 +159,32 @@
         .status-occupied { background-color: #2ecc71; }
         .status-unoccupied { background-color: #f39c12; }
         .status-issue { background-color: #e74c3c; }
+        /* Estilo para os ícones de periféricos */
+        .peripherals-container {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            display: flex;
+            gap: 4px;
+        }
+        .peripheral-icon {
+            font-size: 10px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .peripheral-active {
+            color: #3498db;
+        }
+        .peripheral-inactive {
+            color: #bbb;
+        }
+        /* Dark theme para periféricos */
+        .dark-theme .peripheral-active {
+            color: #5dade2;
+        }
+        .dark-theme .peripheral-inactive {
+            color: #666;
+        }
         /* --- Fim Workstation Pública --- */
 
         /* --- Estilos do Slider de Ilhas --- */
@@ -214,6 +240,8 @@
              box-shadow: 0 2px 10px rgba(0,0,0,0.1);
              z-index: 50;
              font-size: 0.9em;
+             max-height: 90vh;
+             overflow-y: auto;
         }
         .legend-item {
             display: flex;
@@ -249,8 +277,14 @@
         .dark-theme .slider-btn.side-btn { background-color: #2980b9; color: #e0e0e0; }
         .dark-theme .slider-btn.side-btn:hover { background-color: #1f618d; }
          /* Dark Theme Legenda */
-        .dark-theme .status-legend { background-color: rgba(40, 40, 40, 0.95); box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .dark-theme .status-legend { 
+            background-color: rgba(40, 40, 40, 0.95); 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3); 
+        }
         .dark-theme .legend-color { border-color: #555; }
+        .dark-theme .legend-item[style] {
+            border-top-color: #444 !important;
+        }
         .dark-theme p { /* Garante que texto 'Nenhuma sala/ilha' seja claro */
            color: #e0e0e0; 
         } 
@@ -273,6 +307,29 @@
             <div class="legend-item">
                 <div class="legend-color status-issue"></div>
                 <span>Manutenção</span>
+            </div>
+            <div class="legend-item" style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 5px;">
+                <span style="font-weight: bold; margin-bottom: 3px; display: block;">Periféricos:</span>
+            </div>
+            <div class="legend-item">
+                <span class="peripheral-icon peripheral-active" style="margin-right: 5px;">M</span>
+                <span>Monitor</span>
+            </div>
+            <div class="legend-item">
+                <span class="peripheral-icon peripheral-active" style="margin-right: 5px;">T</span>
+                <span>Teclado</span>
+            </div>
+            <div class="legend-item">
+                <span class="peripheral-icon peripheral-active" style="margin-right: 5px;">Mo</span>
+                <span>Mouse</span>
+            </div>
+            <div class="legend-item">
+                <span class="peripheral-icon peripheral-active" style="margin-right: 5px;">Mp</span>
+                <span>Mousepad</span>
+            </div>
+            <div class="legend-item">
+                <span class="peripheral-icon peripheral-active" style="margin-right: 5px;">F</span>
+                <span>Fone de ouvido</span>
             </div>
         </div>
 
@@ -309,7 +366,7 @@
                                                             {# VERSÃO PÚBLICA: item é o objeto workstation #}
                                                             {% with workstation=item %}
                                                                 <div class="workstation">
-                                                                    <div class="workstation-number">{{ workstation.display_sequence }}</div>
+                                                                    <div class="workstation-number">{{ workstation.sequence }}</div>
                                                                     <div class="employee-name">
                                                                         {% if workstation.employee %}
                                                                             {{ workstation.employee.name }}
@@ -320,6 +377,14 @@
                                                                     {% if workstation.category %}<div class="detail">Cat: {{ workstation.category }}</div>{% endif %}
                                                                     <div class="status-container">
                                                                         <div class="status-indicator {% if workstation.status == 'OCCUPIED' %}status-occupied {% elif workstation.status == 'UNOCCUPIED' %}status-unoccupied {% else %}status-issue {% endif %}"></div>
+                                                                    </div>
+                                                                    <!-- Ícones de periféricos -->
+                                                                    <div class="peripherals-container">
+                                                                        <span class="peripheral-icon {% if workstation.monitor %}peripheral-active{% else %}peripheral-inactive{% endif %}" title="Monitor">M</span>
+                                                                        <span class="peripheral-icon {% if workstation.keyboard %}peripheral-active{% else %}peripheral-inactive{% endif %}" title="Teclado">T</span>
+                                                                        <span class="peripheral-icon {% if workstation.mouse %}peripheral-active{% else %}peripheral-inactive{% endif %}" title="Mouse">Mo</span>
+                                                                        <span class="peripheral-icon {% if workstation.mousepad %}peripheral-active{% else %}peripheral-inactive{% endif %}" title="Mousepad">Mp</span>
+                                                                        <span class="peripheral-icon {% if workstation.headset %}peripheral-active{% else %}peripheral-inactive{% endif %}" title="Headset">F</span>
                                                                     </div>
                                                                 </div>
                                                             {% endwith %}

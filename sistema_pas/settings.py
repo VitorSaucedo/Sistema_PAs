@@ -52,6 +52,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'pam.models.CurrentUserMiddleware',  # Middleware para capturar o usuário atual
+    'pam.views.HttpMethodMiddleware',  # Novo middleware para métodos HTTP
 ]
 
 ROOT_URLCONF = 'sistema_pas.urls'

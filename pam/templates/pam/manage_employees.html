@@ -5,79 +5,352 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Gerenciar Funcionários</h1>
-
+    <h1 class="mb-4">Gerenciar Funcionários</h1>
+    
+    <!-- Mensagens de alerta -->
     {% if messages %}
-    <div class="messages mb-3">
         {% for message in messages %}
-        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
-            {{ message }}
-        </div>
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         {% endfor %}
-    </div>
     {% endif %}
-
-    <!-- Formulário para Adicionar Funcionário -->
+    
+    <!-- Card para adicionar novo funcionário -->
     <div class="card mb-4">
         <div class="card-header">
-            Adicionar Novo Funcionário
+            <h5 class="mb-0">Adicionar Novo Funcionário</h5>
         </div>
         <div class="card-body">
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="add">
-                
-                {{ form.as_p }} {# Renderiza o formulário como parágrafos #}
-                
-                <button type="submit" class="btn btn-primary">Adicionar Funcionário</button>
+            <form id="employeeForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nome:</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="sector" class="form-label">Setor:</label>
+                            <select class="form-select" id="sector" name="sector">
+                                <option value="INSS">INSS</option>
+                                <option value="SIAPE_LEO">SIAPE Leo</option>
+                                <option value="SIAPE_DION">SIAPE Dion</option>
+                                <option value="ESTAGIO">Estágio</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Adicionar Funcionário</button>
+                </div>
             </form>
         </div>
     </div>
-
-    <!-- Tabela de Funcionários Existentes -->
+    
+    <!-- Card para a lista de funcionários -->
     <div class="card">
         <div class="card-header">
-            Funcionários Cadastrados
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Lista de Funcionários</h5>
+                <div class="input-group" style="width: 300px;">
+                    <input type="text" id="searchEmployee" class="form-control" placeholder="Buscar funcionário...">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
         </div>
         <div class="card-body">
-            {% if employees %}
-            <table class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>CPF</th>
-                        <th>Email</th>
-                        <th>Telefone</th>
-                        <th>Setor</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for employee in employees %}
-                    <tr>
-                        <td>{{ employee.name }}</td>
-                        <td>{{ employee.cpf }}</td> {# Idealmente formatar CPF aqui #}
-                        <td>{{ employee.email }}</td>
-                        <td>{{ employee.phone|default:"-" }}</td>
-                        <td>{{ employee.get_sector_display }}</td> {# Usa o display amigável #}
-                        <td>
-                            <form method="post" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja remover {{ employee.name }}?');">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="remove">
-                                <input type="hidden" name="employee_id" value="{{ employee.id }}">
-                                <button type="submit" class="btn btn-danger btn-sm">Remover</button>
-                            </form>
-                            {# Adicionar botão de Editar aqui no futuro, se necessário #}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p>Nenhum funcionário cadastrado.</p>
-            {% endif %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Nome</th>
+                            <th scope="col">Setor</th>
+                            <th scope="col" class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody">
+                        <!-- Dados carregados via AJAX -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
 </div>
+
+<!-- Modal de Edição -->
+<div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editEmployeeModalLabel">Editar Funcionário</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editEmployeeForm">
+                    <input type="hidden" id="editEmployeeId">
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Nome:</label>
+                        <input type="text" class="form-control" id="editName" name="editName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSector" class="form-label">Setor:</label>
+                        <select class="form-select" id="editSector" name="editSector">
+                            <option value="INSS">INSS</option>
+                            <option value="SIAPE_LEO">SIAPE Leo</option>
+                            <option value="SIAPE_DION">SIAPE Dion</option>
+                            <option value="ESTAGIO">Estágio</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveEditEmployeeBtn">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="deleteEmployeeModal" tabindex="-1" aria-labelledby="deleteEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteEmployeeModalLabel">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o funcionário <strong id="deleteEmployeeName"></strong>?</p>
+                <p class="text-danger">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteEmployeeBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Carregar lista de funcionários
+    function loadEmployees() {
+        $.ajax({
+            url: '{% url "pam:api_employee_list" %}',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const employees = response.employees;
+                    renderEmployeeTable(employees);
+                } else {
+                    showNotification('Erro ao carregar funcionários: ' + response.error, 'danger');
+                }
+            },
+            error: function(xhr) {
+                showNotification('Erro ao carregar funcionários. Tente novamente.', 'danger');
+            }
+        });
+    }
+    
+    // Renderizar tabela de funcionários
+    function renderEmployeeTable(employees) {
+        const tableBody = $('#employeeTableBody');
+        tableBody.empty();
+        
+        if (employees.length === 0) {
+            tableBody.append('<tr><td colspan="3" class="text-center">Nenhum funcionário encontrado</td></tr>');
+            return;
+        }
+        
+        employees.forEach(function(employee) {
+            const row = `
+                <tr>
+                    <td>${employee.name}</td>
+                    <td>${employee.sector_display}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary edit-employee" data-id="${employee.id}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-employee" data-id="${employee.id}" data-name="${employee.name}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        <a href="{% url 'pam:history' %}employee/${employee.id}/" class="btn btn-sm btn-info">
+                            <i class="bi bi-clock-history"></i>
+                        </a>
+                    </td>
+                </tr>
+            `;
+            tableBody.append(row);
+        });
+        
+        // Adicionar eventos aos botões
+        $('.edit-employee').click(function() {
+            const employeeId = $(this).data('id');
+            openEditModal(employeeId);
+        });
+        
+        $('.delete-employee').click(function() {
+            const employeeId = $(this).data('id');
+            const employeeName = $(this).data('name');
+            openDeleteModal(employeeId, employeeName);
+        });
+    }
+    
+    // Abrir modal de edição
+    function openEditModal(employeeId) {
+        $.ajax({
+            url: `{% url "pam:api_employee_detail" employee_id=0 %}`.replace('0', employeeId),
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const employee = response.employee;
+                    $('#editEmployeeId').val(employee.id);
+                    $('#editName').val(employee.name);
+                    $('#editSector').val(employee.sector);
+                    $('#editEmployeeModal').modal('show');
+                } else {
+                    showNotification('Erro ao carregar detalhes do funcionário: ' + response.error, 'danger');
+                }
+            },
+            error: function(xhr) {
+                showNotification('Erro ao carregar detalhes do funcionário', 'danger');
+            }
+        });
+    }
+    
+    // Abrir modal de exclusão
+    function openDeleteModal(employeeId, employeeName) {
+        $('#deleteEmployeeName').text(employeeName);
+        $('#confirmDeleteEmployeeBtn').data('id', employeeId);
+        $('#deleteEmployeeModal').modal('show');
+    }
+    
+    // Adicionar funcionário
+    $('#employeeForm').submit(function(e) {
+        e.preventDefault();
+        
+        const name = $('#name').val();
+        const sector = $('#sector').val();
+        
+        if (!name) {
+            showNotification('O nome do funcionário é obrigatório', 'warning');
+            return;
+        }
+        
+        const data = {
+            name: name,
+            sector: sector
+        };
+        
+        $.ajax({
+            url: '{% url "pam:api_employee_create" %}',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                if (response.success) {
+                    showNotification(response.message, 'success');
+                    $('#employeeForm')[0].reset();
+                    loadEmployees();
+                } else {
+                    showNotification('Erro: ' + response.error, 'danger');
+                }
+            },
+            error: function(xhr) {
+                let errorMsg = 'Erro ao adicionar funcionário';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg += ': ' + xhr.responseJSON.error;
+                }
+                showNotification(errorMsg, 'danger');
+            }
+        });
+    });
+    
+    // Editar funcionário
+    $('#saveEditEmployeeBtn').click(function() {
+        const employeeId = $('#editEmployeeId').val();
+        const name = $('#editName').val();
+        const sector = $('#editSector').val();
+        
+        if (!name) {
+            showNotification('O nome do funcionário é obrigatório', 'warning');
+            return;
+        }
+        
+        const data = {
+            name: name,
+            sector: sector
+        };
+        
+        $.ajax({
+            url: `{% url "pam:api_employee_update" employee_id=0 %}`.replace('0', employeeId),
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                if (response.success) {
+                    $('#editEmployeeModal').modal('hide');
+                    showNotification(response.message, 'success');
+                    loadEmployees();
+                } else {
+                    showNotification('Erro: ' + response.error, 'danger');
+                }
+            },
+            error: function(xhr) {
+                let errorMsg = 'Erro ao atualizar funcionário';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg += ': ' + xhr.responseJSON.error;
+                }
+                showNotification(errorMsg, 'danger');
+            }
+        });
+    });
+    
+    // Excluir funcionário
+    $('#confirmDeleteEmployeeBtn').click(function() {
+        const employeeId = $(this).data('id');
+        
+        $.ajax({
+            url: `{% url "pam:api_employee_delete" employee_id=0 %}`.replace('0', employeeId),
+            type: 'DELETE',
+            success: function(response) {
+                if (response.success) {
+                    $('#deleteEmployeeModal').modal('hide');
+                    showNotification(response.message, 'success');
+                    loadEmployees();
+                } else {
+                    $('#deleteEmployeeModal').modal('hide');
+                    showNotification('Erro: ' + response.error, 'danger');
+                }
+            },
+            error: function(xhr) {
+                $('#deleteEmployeeModal').modal('hide');
+                let errorMsg = 'Erro ao excluir funcionário';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg += ': ' + xhr.responseJSON.error;
+                }
+                showNotification(errorMsg, 'danger');
+            }
+        });
+    });
+    
+    // Filtro de busca
+    $('#searchEmployee').on('keyup', function() {
+        const value = $(this).val().toLowerCase();
+        $("#employeeTableBody tr").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+        });
+    });
+    
+    // Carregar funcionários ao iniciar a página
+    $(document).ready(function() {
+        loadEmployees();
+    });
+</script>
 {% endblock %} 

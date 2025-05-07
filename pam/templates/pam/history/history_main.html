@@ -1,0 +1,67 @@
+{% extends 'pam/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">{{ page_title }}</h2>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Visualizar Históricos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Log de Alterações do Sistema</h5>
+                                    <p class="card-text">Visualize todas as alterações realizadas no sistema, incluindo criação, atualização e exclusão de entidades.</p>
+                                    <a href="{% url 'pam:change_log' %}" class="btn btn-primary">Visualizar Log de Alterações</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Histórico de Posições de Funcionários</h5>
+                                    <p class="card-text">Visualize o histórico de posicionamento de um funcionário específico.</p>
+                                    <div class="form-group">
+                                        <label for="employeeSelect">Selecione um funcionário:</label>
+                                        <select class="form-select" id="employeeSelect">
+                                            <option value="">-- Selecione um funcionário --</option>
+                                            {% for employee in employees %}
+                                            <option value="{{ employee.id }}">{{ employee.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <button id="viewEmployeeHistory" class="btn btn-primary mt-2" disabled>Visualizar Histórico</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const employeeSelect = document.getElementById('employeeSelect');
+        const viewButton = document.getElementById('viewEmployeeHistory');
+        
+        // Atualiza o estado do botão com base na seleção
+        employeeSelect.addEventListener('change', function() {
+            viewButton.disabled = !this.value;
+        });
+        
+        // Configura a ação do botão
+        viewButton.addEventListener('click', function() {
+            const employeeId = employeeSelect.value;
+            if (employeeId) {
+                window.location.href = "{% url 'pam:employee_history' 0 %}".replace('0', employeeId);
+            }
+        });
+    });
+</script>
+{% endblock %} 

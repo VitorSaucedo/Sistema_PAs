@@ -73,12 +73,9 @@ class RoomForm(forms.ModelForm):
 class EmployeeForm(forms.ModelForm):
     class Meta:
         model = Employee
-        fields = ['name', 'cpf', 'email', 'phone', 'sector']
+        fields = ['name', 'sector']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Completo'}),
-            'cpf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '123.456.789-00'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(XX) XXXXX-XXXX'}),
             'sector': forms.Select(attrs={'class': 'form-control'}),
         }
 

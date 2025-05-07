@@ -1,0 +1,127 @@
+{% extends 'pam/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'pam:history' %}">Histórico</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ employee.name }}</li>
+                </ol>
+            </nav>
+            
+            <h2 class="mb-3">{{ page_title }}</h2>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Informações do Funcionário</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Nome:</strong> {{ employee.name }}</p>
+                            <p><strong>Setor:</strong> {{ employee.get_sector_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Posição Atual:</strong> 
+                            {% with current_position=employee.position_history.filter.first %}
+                                {% if current_position %}
+                                    {% if current_position.workstation %}
+                                        PA {{ current_position.workstation.category }} {{ current_position.workstation.sequence }}
+                                    {% else %}
+                                        Sem estação
+                                    {% endif %}
+                                {% else %}
+                                    Não atribuído
+                                {% endif %}
+                            {% endwith %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Histórico de Posicionamento</h5>
+                        
+                        <form class="d-flex" method="get">
+                            <div class="input-group me-2">
+                                <span class="input-group-text">De</span>
+                                <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                            </div>
+                            <div class="input-group me-2">
+                                <span class="input-group-text">Até</span>
+                                <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Filtrar</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if employee_history %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Estação de Trabalho</th>
+                                        <th>Sala</th>
+                                        <th>Ilha</th>
+                                        <th>Data de Início</th>
+                                        <th>Data de Término</th>
+                                        <th>Duração</th>
+                                        <th>Alterado por</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for history in employee_history %}
+                                    <tr>
+                                        <td>
+                                            {% if history.workstation %}
+                                                PA {{ history.workstation.category }} {{ history.workstation.sequence }}
+                                            {% else %}
+                                                Sem estação
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ history.room.name|default:"N/A" }}</td>
+                                        <td>{{ history.island.name|default:"N/A" }}</td>
+                                        <td>{{ history.start_date|date:"d/m/Y H:i:s" }}</td>
+                                        <td>
+                                            {% if history.end_date %}
+                                                {{ history.end_date|date:"d/m/Y H:i:s" }}
+                                            {% else %}
+                                                <span class="badge bg-success">Atual</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if history.end_date %}
+                                                {% with duration=history.end_date|timeuntil:history.start_date %}
+                                                    {{ duration }}
+                                                {% endwith %}
+                                            {% else %}
+                                                {% with duration=history.start_date|timesince %}
+                                                    {{ duration }} (em andamento)
+                                                {% endwith %}
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ history.changed_by.username|default:"Sistema" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Nenhum registro de posicionamento encontrado para este funcionário.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

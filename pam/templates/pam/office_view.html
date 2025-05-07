@@ -511,5 +511,49 @@
 
     </script>
 
+    {% block extra_js %}
+    <script>
+        // Intervalo de atualização em milissegundos (30 segundos)
+        const UPDATE_INTERVAL = 30000;
+        
+        // Flag para controlar se estamos em modo de edição
+        let isEditMode = false;
+        
+        // Função para atualizar os dados da estação de trabalho
+        function updateWorkstationData(workstationId) {
+            // Não atualiza se estiver em modo de edição
+            if (isEditMode) return;
+            
+            fetch(`/pam/api/workstation/${workstationId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    // Atualiza os dados na interface
+                    updateWorkstationUI(workstationId, data);
+                })
+                .catch(error => {
+                    console.error('Erro ao atualizar dados:', error);
+                });
+        }
+        
+        // Função para atualizar a interface com os novos dados
+        function updateWorkstationUI(workstationId, data) {
+            // Implementar a atualização da UI com os dados recebidos
+            const workstationElement = document.querySelector(`.workstation[data-id="${workstationId}"]`);
+            if (!workstationElement) return;
+            
+            // Atualizar os elementos conforme necessário
+            // ... implementação específica conforme necessidade
+        }
+        
+        // Configurar o intervalo de atualização
+        setInterval(() => {
+            // Obter todas as workstations e atualizar
+            document.querySelectorAll('.workstation').forEach(workstation => {
+                const id = workstation.dataset.id;
+                if (id) updateWorkstationData(id);
+            });
+        }, UPDATE_INTERVAL);
+    </script>
+    {% endblock %}
 </body>
 </html>

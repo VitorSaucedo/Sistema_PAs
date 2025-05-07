@@ -1,4 +1,7 @@
 {% extends 'pam/base.html' %}
+{% load static %}
+
+{% block title %}Gerenciar Salas{% endblock %}
 
 {% block content %}
 <style>
@@ -33,65 +36,427 @@
 </style>
 
 <div class="container mt-4">
-    <h1 class="mb-4">Gerenciamento de Salas</h1>
+    <h1 class="mb-4">Gerenciar Salas</h1>
     
-    <div class="row">
-        <!-- Formulário para adicionar nova sala -->
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Adicionar Nova Sala</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
+    <!-- Mensagens de alerta -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Card para adicionar nova sala -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Adicionar Nova Sala</h5>
+        </div>
+        <div class="card-body">
+            <form id="roomForm">
+                <div class="row">
+                    <div class="col-md-12">
                         <div class="mb-3">
-                            <label for="id_name" class="form-label">Nome da Sala</label>
-                            <input type="text" name="name" id="id_name" class="form-control" required>
+                            <label for="name" class="form-label">Nome da Sala:</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
                         </div>
-                        <button type="submit" class="btn btn-primary">Adicionar</button>
-                    </form>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Adicionar Sala</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Card para a lista de salas -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Lista de Salas</h5>
+                <div class="input-group" style="width: 300px;">
+                    <input type="text" id="searchRoom" class="form-control" placeholder="Buscar sala...">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="bi bi-search"></i>
+                    </button>
                 </div>
             </div>
         </div>
-        
-        <!-- Lista de salas existentes -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Salas Existentes</h5>
-                </div>
-                <div class="card-body">
-                    {% if rooms %}
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for room in rooms %}
-                            <tr>
-                                <td>{{ room.name }}</td>
-                                <td>
-                                    <form method="post" action="{% url 'pam:delete_room' room.id %}" class="d-inline">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir esta sala? Todas as ilhas e PAs associadas também serão excluídas.')">
-                                            Excluir
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    {% else %}
-                    <p>Não há salas cadastradas.</p>
-                    {% endif %}
-                </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Nome da Sala</th>
+                            <th scope="col">Ilhas</th>
+                            <th scope="col">Data de Criação</th>
+                            <th scope="col" class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roomTableBody">
+                        <!-- Dados carregados via AJAX -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal de Edição -->
+<div class="modal fade" id="editRoomModal" tabindex="-1" aria-labelledby="editRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editRoomModalLabel">Editar Sala</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editRoomForm">
+                    <input type="hidden" id="editRoomId">
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Nome da Sala:</label>
+                        <input type="text" class="form-control" id="editName" name="editName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveEditRoomBtn">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="deleteRoomModal" tabindex="-1" aria-labelledby="deleteRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteRoomModalLabel">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir a sala <strong id="deleteRoomName"></strong>?</p>
+                <p class="text-danger">Esta ação não pode ser desfeita. Todas as ilhas e estações de trabalho associadas também serão excluídas.</p>
+                <div id="deleteRoomWarning" class="alert alert-warning" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteRoomBtn">Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalhes da Sala -->
+<div class="modal fade" id="roomDetailsModal" tabindex="-1" aria-labelledby="roomDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="roomDetailsModalLabel">Detalhes da Sala</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h4>Sala: <span id="detailRoomName"></span></h4>
+                <hr>
+                <h5>Ilhas na Sala</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nome da Ilha</th>
+                                <th>Número</th>
+                                <th>Categoria</th>
+                                <th>Estações de Trabalho</th>
+                            </tr>
+                        </thead>
+                        <tbody id="islandsTableBody">
+                            <!-- Dados carregados via AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="manageIslandsLink" href="#" class="btn btn-primary">Gerenciar Ilhas</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Carregar lista de salas
+    function loadRooms() {
+        $.ajax({
+            url: '{% url "pam:api_room_list" %}',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const rooms = response.rooms;
+                    renderRoomTable(rooms);
+                } else {
+                    showNotification('Erro ao carregar salas: ' + response.error, 'danger');
+                }
+            },
+            error: function(xhr) {
+                showNotification('Erro ao carregar salas. Tente novamente.', 'danger');
+            }
+        });
+    }
+    
+    // Renderizar tabela de salas
+    function renderRoomTable(rooms) {
+        const tableBody = $('#roomTableBody');
+        tableBody.empty();
+        
+        if (rooms.length === 0) {
+            tableBody.append('<tr><td colspan="4" class="text-center">Nenhuma sala encontrada</td></tr>');
+            return;
+        }
+        
+        rooms.forEach(function(room) {
+            const row = `
+                <tr>
+                    <td>${room.name}</td>
+                    <td>${room.islands_count}</td>
+                    <td>${room.created_at}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-info view-room" data-id="${room.id}" data-name="${room.name}">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-primary edit-room" data-id="${room.id}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-room" data-id="${room.id}" data-name="${room.name}" data-islands="${room.islands_count}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tableBody.append(row);
+        });
+        
+        // Adicionar eventos aos botões
+        $('.view-room').click(function() {
+            const roomId = $(this).data('id');
+            const roomName = $(this).data('name');
+            openDetailsModal(roomId, roomName);
+        });
+        
+        $('.edit-room').click(function() {
+            const roomId = $(this).data('id');
+            openEditModal(roomId);
+        });
+        
+        $('.delete-room').click(function() {
+            const roomId = $(this).data('id');
+            const roomName = $(this).data('name');
+            const islandCount = $(this).data('islands');
+            openDeleteModal(roomId, roomName, islandCount);
+        });
+    }
+    
+    // Abrir modal de detalhes
+    function openDetailsModal(roomId, roomName) {
+        $('#detailRoomName').text(roomName);
+        $('#manageIslandsLink').attr('href', `{% url "pam:manage_islands" %}?room=${roomId}`);
+        
+        // Carregar ilhas da sala
+        $.ajax({
+            url: `{% url "pam:api_room_detail" room_id=0 %}`.replace('0', roomId),
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const room = response.room;
+                    const islands = room.islands;
+                    
+                    const islandsTableBody = $('#islandsTableBody');
+                    islandsTableBody.empty();
+                    
+                    if (islands.length === 0) {
+                        islandsTableBody.append('<tr><td colspan="4" class="text-center">Nenhuma ilha encontrada nesta sala</td></tr>');
+                    } else {
+                        islands.forEach(function(island) {
+                            const row = `
+                                <tr>
+                                    <td>${island.name}</td>
+                                    <td>${island.island_number}</td>
+                                    <td>${island.category_display}</td>
+                                    <td>${island.workstations_count}</td>
+                                </tr>
+                            `;
+                            islandsTableBody.append(row);
+                        });
+                    }
+                    
+                    $('#roomDetailsModal').modal('show');
+                } else {
+                    showNotification('Erro ao carregar detalhes da sala: ' + response.error, 'danger');
+                }
+            },
+            error: function(xhr) {
+                showNotification('Erro ao carregar detalhes da sala', 'danger');
+            }
+        });
+    }
+    
+    // Abrir modal de edição
+    function openEditModal(roomId) {
+        $.ajax({
+            url: `{% url "pam:api_room_detail" room_id=0 %}`.replace('0', roomId),
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const room = response.room;
+                    $('#editRoomId').val(room.id);
+                    $('#editName').val(room.name);
+                    $('#editRoomModal').modal('show');
+                } else {
+                    showNotification('Erro ao carregar detalhes da sala: ' + response.error, 'danger');
+                }
+            },
+            error: function(xhr) {
+                showNotification('Erro ao carregar detalhes da sala', 'danger');
+            }
+        });
+    }
+    
+    // Abrir modal de exclusão
+    function openDeleteModal(roomId, roomName, islandCount) {
+        $('#deleteRoomName').text(roomName);
+        $('#confirmDeleteRoomBtn').data('id', roomId);
+        
+        // Mostrar aviso se houver ilhas
+        if (islandCount > 0) {
+            $('#deleteRoomWarning').html(`<strong>Atenção:</strong> Esta sala contém ${islandCount} ilha(s). Remova as ilhas primeiro antes de excluir a sala.`).show();
+            $('#confirmDeleteRoomBtn').prop('disabled', true);
+        } else {
+            $('#deleteRoomWarning').hide();
+            $('#confirmDeleteRoomBtn').prop('disabled', false);
+        }
+        
+        $('#deleteRoomModal').modal('show');
+    }
+    
+    // Adicionar sala
+    $('#roomForm').submit(function(e) {
+        e.preventDefault();
+        
+        const name = $('#name').val();
+        
+        if (!name) {
+            showNotification('O nome da sala é obrigatório', 'warning');
+            return;
+        }
+        
+        const data = {
+            name: name
+        };
+        
+        $.ajax({
+            url: '{% url "pam:api_room_create" %}',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                if (response.success) {
+                    showNotification(response.message, 'success');
+                    $('#roomForm')[0].reset();
+                    loadRooms();
+                } else {
+                    showNotification('Erro: ' + response.error, 'danger');
+                }
+            },
+            error: function(xhr) {
+                let errorMsg = 'Erro ao adicionar sala';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg += ': ' + xhr.responseJSON.error;
+                }
+                showNotification(errorMsg, 'danger');
+            }
+        });
+    });
+    
+    // Editar sala
+    $('#saveEditRoomBtn').click(function() {
+        const roomId = $('#editRoomId').val();
+        const name = $('#editName').val();
+        
+        if (!name) {
+            showNotification('O nome da sala é obrigatório', 'warning');
+            return;
+        }
+        
+        const data = {
+            name: name
+        };
+        
+        $.ajax({
+            url: `{% url "pam:api_room_update" room_id=0 %}`.replace('0', roomId),
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                if (response.success) {
+                    $('#editRoomModal').modal('hide');
+                    showNotification(response.message, 'success');
+                    loadRooms();
+                } else {
+                    showNotification('Erro: ' + response.error, 'danger');
+                }
+            },
+            error: function(xhr) {
+                let errorMsg = 'Erro ao atualizar sala';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg += ': ' + xhr.responseJSON.error;
+                }
+                showNotification(errorMsg, 'danger');
+            }
+        });
+    });
+    
+    // Excluir sala
+    $('#confirmDeleteRoomBtn').click(function() {
+        const roomId = $(this).data('id');
+        
+        $.ajax({
+            url: `{% url "pam:api_room_delete" room_id=0 %}`.replace('0', roomId),
+            type: 'DELETE',
+            success: function(response) {
+                if (response.success) {
+                    $('#deleteRoomModal').modal('hide');
+                    showNotification(response.message, 'success');
+                    loadRooms();
+                } else {
+                    $('#deleteRoomModal').modal('hide');
+                    showNotification('Erro: ' + response.error, 'danger');
+                }
+            },
+            error: function(xhr) {
+                $('#deleteRoomModal').modal('hide');
+                let errorMsg = 'Erro ao excluir sala';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg += ': ' + xhr.responseJSON.error;
+                }
+                showNotification(errorMsg, 'danger');
+            }
+        });
+    });
+    
+    // Filtro de busca
+    $('#searchRoom').on('keyup', function() {
+        const value = $(this).val().toLowerCase();
+        $("#roomTableBody tr").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+        });
+    });
+    
+    // Carregar salas ao iniciar a página
+    $(document).ready(function() {
+        loadRooms();
+    });
+</script>
 {% endblock %} 

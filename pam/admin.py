@@ -3,8 +3,8 @@ from .models import Employee, Room, Island, Workstation
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'cpf', 'sector', 'phone', 'email')
-    search_fields = ('name', 'cpf', 'email')
+    list_display = ('name', 'sector')
+    search_fields = ('name',)
     list_filter = ('sector',)
 
 @admin.register(Room)
